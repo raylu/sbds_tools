@@ -22,7 +22,7 @@
 
 	function renderSpell(name, data) {
 		const section = document.createElement('section');
-		section.innerHTML = `${name}:`;
+		section.innerHTML = `<img src="/static/data/spells/${name}.png"><h3>${name}:</h3>`;
 		for (const [key, value] of Object.entries(data)) {
 			if (Array.isArray(value))
 				section.innerHTML += `<div>${key}: <pre>${value.join('\n')}</pre></div>`;

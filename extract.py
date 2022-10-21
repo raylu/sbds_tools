@@ -3,14 +3,14 @@
 import json
 import os
 import re
+import shutil
 
 import godot_parser
 
 def main():
-	try:
-		os.mkdir('static/data')
-	except FileExistsError:
-		pass
+	shutil.rmtree('static/data', ignore_errors=True)
+	for d in ['static/data', 'static/data/spells']:
+		os.mkdir(d)
 
 	with open('static/data/spells.json', 'w') as f:
 		json.dump(load_spells(), f, indent='\t')
@@ -48,10 +48,20 @@ def load_spells() -> dict:
 	for prefix in ('SPELL', 'EVOLVED'):
 		for name, path in spell_paths[prefix]:
 			scene = godot_parser.load('extracted/' + path)
-			(root,) = (node for node in scene.get_nodes() if not node.parent)
-			spell = {key: root.get(key) for key in fields}
+
+			node = scene.find_node(parent=None)
+			spell = {key: node.get(key) for key in fields}
 			assert prefix == 'SPELL' or spell['evolveList'] is None
 			spells[prefix][name] = spell
+
+			resource = scene.find_ext_resource(type='Texture')
+			if resource is None or resource.path == 'res://Animations/SigilAnims.png':
+				(resource,) = (r for r in scene.get_ext_resources() if r.path.startswith('res://UI/Icons/'))
+				scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+				resource = scene.find_ext_resource(type='Texture')
+			assert resource.path.startswith('res://')
+			img_path = resource.path[len('res://'):]
+			os.link('extracted/' + img_path, f'static/data/spells/{name}.png')
 	
 	return spells
 
