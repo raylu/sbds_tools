@@ -16,7 +16,7 @@ def main():
 		json.dump(load_spells(), f, indent='\t')
 
 def load_spells() -> dict:
-	spell_types = {'SPELL': [], 'EVOLVED': [], 'AURA': []}
+	spell_paths = {'SPELL': [], 'EVOLVED': [], 'AURA': []}
 	path_re = re.compile(r'preload\("res://(.+)"\)')
 	with open('extracted/SpellReferenceList.gd', 'r', encoding='ascii') as f:
 		for line in f:
@@ -26,14 +26,17 @@ def load_spells() -> dict:
 			prefix, name, paths = m.groups()
 			if prefix in ('SPELL', 'EVOLVED'):
 				path = path_re.match(paths).group(1)
-				spell_types[prefix].append((name, path))
+				spell_paths[prefix].append((name, path))
 			else:
 				assert prefix == 'AURA'
 				paths = re.match(r'\[(.+), (.+), "\w+"\]', paths).groups()
 				paths = [path_re.match(path).group(1) for path in paths]
-				spell_types[prefix].append((name, paths))
+				spell_paths[prefix].append((name, paths))
 
-	spells = {}
+	spells = {
+		'SPELL': {},
+		'EVOLVED': {},
+	}
 	fields = [
 		'baseDamage',
 		'baseCooldown',
@@ -42,11 +45,13 @@ def load_spells() -> dict:
 		'evolveList',
 		'spellTags',
 	]
-	for name, path in spell_types['SPELL']:
-		scene = godot_parser.load('extracted/' + path)
-		(root,) = (node for node in scene.get_nodes() if not node.parent)
-		spell = {key: root.get(key) for key in fields}
-		spells[name] = spell
+	for prefix in ('SPELL', 'EVOLVED'):
+		for name, path in spell_paths[prefix]:
+			scene = godot_parser.load('extracted/' + path)
+			(root,) = (node for node in scene.get_nodes() if not node.parent)
+			spell = {key: root.get(key) for key in fields}
+			assert prefix == 'SPELL' or spell['evolveList'] is None
+			spells[prefix][name] = spell
 	
 	return spells
 
