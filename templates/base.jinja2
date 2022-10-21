@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>spellbook demonslayers tools</title>
+		<link rel="stylesheet" href="/static/style.css">
+	</head>
+	<body>
+		{% if not no_back_button %}
+			<a href="/" class="back">←</a>
+		{% endif %}
+
+		{% block body %}{% endblock body %}
+
+		<footer>
+			<a href="https://github.com/raylu/sbds_tools">github.com/raylu/sbds_tools</a>
+		</footer>
+	</body>
+</html>
