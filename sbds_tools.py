@@ -12,6 +12,8 @@ import mimetypes
 from pigwig import PigWig, Response
 from pigwig.exceptions import HTTPException
 
+import game_data
+
 def root(request):
 	return Response.render(request, 'index.jinja2', {'no_back_button': True})
 
@@ -33,6 +35,7 @@ routes = [
 ]
 
 app = PigWig(routes, template_dir='templates')
+data = game_data.GameData()
 
 def main():
 	if len(sys.argv) == 3:
