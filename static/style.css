@@ -50,6 +50,9 @@ main.root {
 	margin-top: 50px;
 }
 
+main.spells section.evolved {
+	margin-left: 100px;
+}
 main.spells section div {
 	margin: 0.5em;
 }
