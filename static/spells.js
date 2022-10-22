@@ -8,12 +8,15 @@
 	for (const [name, data] of Object.entries(spells['SPELL'])) {
 		main.appendChild(renderSpell(name, data));
 
-		for (const evolveName of data['evolveList'] || []) {
+		for (let evolveName of data['evolveList'] || []) {
 			let evolveData;
-			if (evolveName == 'SPELL_INDRA_SIGIL')
-				evolveData = spells['SPELL']['INDRA_SIGIL']
-			else
-				evolveData = spells['EVOLVED'][evolveName.substr('EVOLVED_'.length)];
+			if (evolveName == 'SPELL_INDRA_SIGIL') {
+				evolveName = 'INDRA_SIGIL';
+				evolveData = spells['SPELL'][evolveName];
+			} else {
+				evolveName = evolveName.substr('EVOLVED_'.length);
+				evolveData = spells['EVOLVED'][evolveName];
+			}
 			const section = renderSpell(evolveName, evolveData);
 			section.classList.add('evolved');
 			main.appendChild(section);

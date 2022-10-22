@@ -54,13 +54,14 @@ def load_spells() -> dict:
 			assert prefix == 'SPELL' or spell['evolveList'] is None
 			spells[prefix][name] = spell
 
-			resource = scene.find_ext_resource(type='Texture')
-			if resource is None or resource.path == 'res://Animations/SigilAnims.png':
-				(resource,) = (r for r in scene.get_ext_resources() if r.path.startswith('res://UI/Icons/'))
+			icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
+			resource = scene.find_ext_resource(id=icon.id)
+			if resource.type == 'PackedScene':
 				scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
 				resource = scene.find_ext_resource(type='Texture')
 			assert resource.path.startswith('res://')
 			img_path = resource.path[len('res://'):]
+			print(name, '→', img_path)
 			os.link('extracted/' + img_path, f'static/data/spells/{name}.png')
 	
 	return spells
