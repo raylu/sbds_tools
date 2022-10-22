@@ -53,12 +53,21 @@
 		const name = translate(data['spellName']);
 		section.innerHTML = `<img loading="lazy" src="/static/data/spells/${spellID}.png">` +
 				`<h3>${name}:</h3>`;
-		for (const [key, value] of Object.entries(data)) {
-			if (Array.isArray(value))
-				section.innerHTML += `<div>${key}: <pre>${value.join('\n')}</pre></div>`;
-			else
-				section.innerHTML += `<div>${key}: ${value}</div>`;
-		}
+		section.innerHTML += `<div>base damage: ${data['baseDamage']}</div>`;
+		section.innerHTML += `<div>base cooldown: ${data['baseDamage']}</div>`;
+		section.innerHTML += `<div>projectiles: ${data['projectileAmount']}</div>`;
+		section.innerHTML += `<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
+
+		const levels = document.createElement('div');
+		levels.innerHTML = 'levels';
+		data['levelUpDescriptions'].forEach((desc, i) => {
+			const translated = desc.replaceAll(/[A-Z_]+/g, translate);
+			levels.innerHTML += `<div class="levels">${i+1}: ${translated}\n</div>`;
+		});
+		section.appendChild(levels);
+
+		if (data['spellTags'] !== null)
+			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
 		return section;
 	}
 
