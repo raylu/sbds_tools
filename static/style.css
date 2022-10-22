@@ -17,9 +17,7 @@ a:hover {
 }
 
 a.back {
-	display: inline-block;
 	font-size: 36px;
-	margin-left: 20px;
 }
 
 input {
@@ -42,6 +40,27 @@ main section {
 	margin: 15px 10px;
 	padding: 5px;
 	border: 1px solid #222;
+}
+header {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 20px;
+}
+header #langs {
+	display: flex;
+	align-content: center;
+	gap: 2ch;
+}
+header #langs div {
+	line-height: 36px;
+	cursor: pointer;
+	border: 1px solid #333;
+	padding: 0 2ch;
+	transition: border-color 0.2s, background-color 0.2s;
+}
+header #langs div:hover, header #langs div.selected {
+	border-color: #555;
+	background-color: #222;
 }
 
 main.root {

@@ -5,9 +5,12 @@
 		<link rel="stylesheet" href="/static/style.css">
 	</head>
 	<body>
-		{% if not no_back_button %}
-			<a href="/" class="back">←</a>
-		{% endif %}
+		<header>
+			{% if not no_back_button %}
+				<a href="/" class="back">←</a>
+			{% endif %}
+			{% block header %}{% endblock header %}
+		</header>
 
 		{% block body %}{% endblock body %}
 
