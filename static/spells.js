@@ -60,10 +60,11 @@
 
 		const levels = document.createElement('div');
 		levels.innerHTML = 'levels';
-		data['levelUpDescriptions'].forEach((desc, i) => {
-			const translated = desc.replaceAll(/[A-Z_]+/g, translate);
-			levels.innerHTML += `<div class="levels">${i+1}: ${translated}\n</div>`;
-		});
+		if (data['levelUpDescriptions'] !== null)
+			data['levelUpDescriptions'].forEach((desc, i) => {
+				const translated = desc.replaceAll(/[A-Z_]+/g, translate);
+				levels.innerHTML += `<div class="levels">${i+1}: ${translated}\n</div>`;
+			});
 		section.appendChild(levels);
 
 		if (data['spellTags'] !== null)
