@@ -54,13 +54,14 @@ header {
 header #langs {
 	display: flex;
 	align-items: center;
-	gap: 2ch;
+	gap: 1ch;
+	flex-wrap: wrap;
 }
 header #langs div {
 	line-height: 36px;
 	cursor: pointer;
 	border: 1px solid #333;
-	padding: 0 2ch;
+	padding: 0 10px;
 	transition: border-color 0.2s, background-color 0.2s;
 }
 header #langs div:hover, header #langs div.selected {
@@ -77,30 +78,40 @@ main.root {
 main input#search {
 	display: block;
 	margin: 0 auto;
+	max-width: 100%;
 }
 
+.spells {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
 .spells section {
+	grid-column: 1;
 	display: flex;
 	flex-direction: column;
 }
 .spells section.evolved {
-	margin-left: 100px;
+	margin-left: 20px;
+	grid-column: 2;
 }
 .spells section .spell_base {
 	display: flex;
 	justify-content: space-between;
 }
-.spells section .spell_base img.spell_icon {
-	height: 96px;
-	vertical-align: top;
+.spells section .spell_base .spell_base_left {
+	padding-right: 10px;
 }
 .spells section .spell_base h3 {
-	margin: 0;
 	display: inline;
+	margin: 0;
 	color: #fc0;
 }
+.spells section .spell_base img.spell_icon {
+	display: block;
+	height: 96px;
+}
 .spells section .spell_base .stats {
-	width: 40%;
+	padding-right: 10px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
@@ -136,4 +147,24 @@ footer {
 	text-align: center;
 	font-family: monospace;
 	font-size: 14px;
+}
+
+@media (max-width: 960px) {
+	.spells {
+		grid-template-columns: 1fr;
+	}
+	.spells section.evolved {
+		grid-column: 1;
+	}
+	.spells section .spell_base {
+		flex-direction: column;
+	}
+	.spells section .spell_base .spell_base_left {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.spells section .levels table td {
+		overflow-wrap: anywhere;
+	}
 }

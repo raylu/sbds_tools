@@ -81,15 +81,16 @@
 		const spellBase = document.createElement('div');
 		spellBase.classList.add('spell_base');
 		const spellBaseLeft = document.createElement('div');
+		spellBaseLeft.classList.add('spell_base_left');
 		const name = translate(data['spellName']);
-		spellBaseLeft.innerHTML = `
-				<img loading="lazy" src="/static/data/spells/${spellID}.png" class="spell_icon">
-				<h3>${name}</h3>`;
+		spellBaseLeft.innerHTML = `<h3>${name}</h3>`;
 		if (spellID.indexOf('_SHRINE_') !== -1)
 			spellBaseLeft.innerHTML += '<span> (shrine)</span>';
 		const learnDesc = data['learnDescription'] ?? '';
 		if (learnDesc === 'ILLEGAL_SPELL' || learnDesc.substr(0, 15) === 'Illegal Magic -')
 			spellBaseLeft.innerHTML += '<span> (illegal)</span>';
+		spellBaseLeft.innerHTML += `<img loading="lazy"
+				src="/static/data/spells/${spellID}.png" class="spell_icon">`;
 		spellBase.appendChild(spellBaseLeft);
 		const stats = document.createElement('div');
 		stats.classList.add('stats');
