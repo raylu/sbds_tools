@@ -56,7 +56,7 @@
 		spellBase.classList.add('spell_base');
 		const name = translate(data['spellName']);
 		spellBase.innerHTML = `<div>
-				<img loading="lazy" src="/static/data/spells/${spellID}.png">
+				<img loading="lazy" src="/static/data/spells/${spellID}.png" class="spell_icon">
 				<h3>${name}</h3>
 			</div>`;
 		const stats = document.createElement('div');
@@ -85,7 +85,7 @@
 			data['levelUpDescriptions'].forEach((desc, i) => {
 				if (i+1 >= minLevel) {
 					const translated = desc.replaceAll(/[A-Z_]+/g, translate);
-					levelDescs.innerHTML += `<div>${i+1}: ${translated}\n</div>`;
+					levelDescs.innerHTML += `<div>${i+1}: <span class="level_up_desc">${translated}</span></div>`;
 				}
 			});
 		levels.appendChild(levelDescs);
