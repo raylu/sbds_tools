@@ -5,4 +5,6 @@
    --recover='/mnt/.../Steam/steamapps/common/Spellbook Demonslayers Prologue/Spellbook Demonslayers.pck'`
 1. download https://docs.google.com/spreadsheets/d/1SrbtXMnRbRUK77WYrmwisTh33dnmSnwtXv7brwAL8Gk
    as CSVs to `extracted/`
+1. `pip3 install -r requirements.txt -r requirements_extract.txt`
 1. `./extract.py`
+1. `./sbds_tools.py`
