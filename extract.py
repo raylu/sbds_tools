@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
+import collections
 import csv
 import json
 import os
 import re
 import shutil
 
-import godot_parser
+import gdtoolkit.parser # .gd/script parser
+import godot_parser # .tscn/scene parser
+import lark.lexer
+import lark.tree
 
 def main():
 	shutil.rmtree('static/data', ignore_errors=True)
@@ -66,6 +70,15 @@ def prepare_spells() -> dict:
 		'evolveList',
 		'spellTags',
 	]
+	unparseable_level_data = [
+		'SPELL_SHRINE_COLDFRONT',
+		'SPELL_SPIRIT_SHIELD',
+		'SPELL_STORM_THRONE',
+		'SPELL_SHIELD_STORM',
+		'SPELL_DARK_THRONE',
+		'SPELL_MELTDOWN',
+		'EVOLVED_GUN_GUARDIANS',
+	]
 	for prefix in ('SPELL', 'EVOLVED'):
 		for path in spell_paths[prefix]:
 			scene = godot_parser.load('extracted/' + path)
@@ -74,19 +87,77 @@ def prepare_spells() -> dict:
 			spell_id = node['spellID']
 			spell = {key: node.get(key) for key in fields}
 			assert prefix == 'SPELL' or spell['evolveList'] is None
-			spells[prefix][spell_id] = spell
 
 			icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
 			resource = scene.find_ext_resource(id=icon.id)
 			if resource.type == 'PackedScene':
-				scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
-				resource = scene.find_ext_resource(type='Texture')
+				icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+				resource = icon_scene.find_ext_resource(type='Texture')
 			assert resource.path.startswith('res://')
 			img_path = resource.path[len('res://'):]
 			print(spell_id, '→', img_path)
 			os.link('extracted/' + img_path, f'static/data/spells/{spell_id}.png')
+
+			script = node['script']
+			resource = scene.find_ext_resource(id=script.id)
+			assert resource.path.startswith('res://')
+			level_data = None
+			if spell_id not in unparseable_level_data:
+				level_data = parse_level_data('extracted/' + resource.path[len('res://'):])
+			spell['levelData'] = level_data
+
+			spells[prefix][spell_id] = spell
 	
 	return spells
+
+def parse_level_data(path: str) -> dict[int, tuple]:
+	with open(path, 'r', encoding='ascii') as f:
+		tree = gdtoolkit.parser.parser.parse(f.read())
+	apply_level_bonus: lark.tree.Tree
+	(apply_level_bonus,) = tree.find_pred(
+			lambda t: t.data == 'func_def' and t.children[0].children[0].value == 'apply_level_bonus')
+	match_tree: lark.tree.Tree
+	(match_tree,) = apply_level_bonus.find_data('match_stmt')
+	assert match_tree.children[0].children[0].value == 'level'
+
+	level_data = collections.defaultdict(list)
+	for branch in match_tree.children[1:]:
+		branch: lark.tree.Tree
+		assert branch.data == 'match_branch'
+		pattern, *stmts = branch.children
+		assert pattern.data == 'pattern'
+		level = int(pattern.children[0].value)
+		for stmt in stmts:
+			level_data[level].extend(level_bonuses(stmt))
+	return level_data
+
+def level_bonuses(stmt: lark.tree.Tree):
+	if stmt.data == 'for_stmt':
+		# recurse
+		for sub_stmt in stmt.find_data('expr_stmt'):
+			yield from level_bonuses(sub_stmt)
+		return
+
+	# base case
+	if stmt.data == 'pass_stmt':
+		return
+	assert stmt.data == 'expr_stmt', stmt.pretty()
+	assnmnt_expr = stmt.children[0].children[0]
+	if assnmnt_expr.data in ('getattr_call', 'standalone_call'):
+		return
+	assert assnmnt_expr.data == 'assnmnt_expr', stmt.pretty()
+
+	op = assnmnt_expr.children[1].value
+	assert op in ('+=', '-=')
+	num = float(assnmnt_expr.children[2].value)
+	if isinstance(assnmnt_expr.children[0], lark.lexer.Token):
+		yield assnmnt_expr.children[0].value, op, num
+	elif isinstance(assnmnt_expr.children[0], lark.tree.Tree):
+		getattr_expr = assnmnt_expr.children[0]
+		assert getattr_expr.data == 'getattr'
+		yield getattr_expr.children[2].value, op, num
+	else:
+		raise AssertionError
 
 if __name__ == '__main__':
 	main()
