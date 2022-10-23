@@ -79,6 +79,7 @@ def prepare_spells() -> dict:
 		'levelUpDescriptions',
 		'evolveList',
 		'spellTags',
+		'learnDescription',
 	]
 	unparseable_level_data = [
 		'SPELL_SHRINE_COLDFRONT',
