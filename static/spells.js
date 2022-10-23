@@ -66,8 +66,9 @@
 	}
 
 	function renderLevels(section, data) {
+		section.innerHTML += '<button class="level_toggle">levels</button>';
 		const levels = document.createElement('div');
-		levels.innerHTML = 'levels';
+		levels.classList.add('levels');
 		if (data['levelUpDescriptions'] !== null)
 			data['levelUpDescriptions'].forEach((desc, i) => {
 				const translated = desc.replaceAll(/[A-Z_]+/g, translate);
@@ -111,9 +112,15 @@
 					tr.innerHTML += `<td>${numFormat.format(vars[varName])}</td>`;
 				levelTable.appendChild(tr);
 			}
-			section.appendChild(levelTable);
+			levels.appendChild(levelTable);
 		}
 	}
+	main.addEventListener('click', (event) => {
+		if (event.target.tagName === 'BUTTON') {
+			const levels = event.target.parentElement.querySelector('.levels');
+			levels.classList.toggle('visible');
+		}
+	});
 
 	function translate(s) {
 		const tr = translations[s];
