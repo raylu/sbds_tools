@@ -71,11 +71,13 @@ def prepare_spells() -> dict:
 		'evolveList',
 		'spellTags',
 	]
+	# TODO: infero and acid breath cooldowns are unknown
 	unparseable_level_data = [
 		'SPELL_SHRINE_COLDFRONT',
 		'SPELL_SPIRIT_SHIELD',
 		'SPELL_STORM_THRONE',
 		'SPELL_SHIELD_STORM',
+		'SPELL_TORNADO',
 		'SPELL_DARK_THRONE',
 		'SPELL_MELTDOWN',
 		'EVOLVED_GUN_GUARDIANS',
