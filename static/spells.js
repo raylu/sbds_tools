@@ -48,13 +48,14 @@
 		}
 	}
 
+	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
 	function renderSpell(spellID, data) {
 		const section = document.createElement('section');
 		const name = translate(data['spellName']);
-		section.innerHTML = `<img loading="lazy" src="/static/data/spells/${spellID}.png">` +
-				`<h3>${name}:</h3>`;
+		section.innerHTML = `<img loading="lazy" src="/static/data/spells/${spellID}.png">`;
+		section.innerHTML += `<h3>${name}:</h3>`;
 		section.innerHTML += `<div>base damage: ${data['baseDamage']}</div>`;
-		section.innerHTML += `<div>base cooldown: ${data['baseDamage']}</div>`;
+		section.innerHTML += `<div>base cooldown: ${data['baseCooldown']}</div>`;
 		section.innerHTML += `<div>projectiles: ${data['projectileAmount']}</div>`;
 		section.innerHTML += `<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
 
@@ -63,9 +64,48 @@
 		if (data['levelUpDescriptions'] !== null)
 			data['levelUpDescriptions'].forEach((desc, i) => {
 				const translated = desc.replaceAll(/[A-Z_]+/g, translate);
-				levels.innerHTML += `<div class="levels">${i+1}: ${translated}\n</div>`;
+				levels.innerHTML += `<div class="level">${i+1}: ${translated}\n</div>`;
 			});
 		section.appendChild(levels);
+
+		if (data['levelData'] !== null) {
+			const levelTable = document.createElement('table');
+			const {levelData} = data;
+			const varNames = new Set();
+			Object.values(levelData).forEach((stmts) => {
+				stmts.forEach((stmt) => varNames.add(stmt[0]));
+			});
+			const vars = {};
+			let tr = document.createElement('tr');
+			tr.innerHTML = '<td></td>';
+			for (const varName of varNames) {
+				tr.innerHTML += `<td>${varName}</td>`;
+				let baseValue = 0;
+				if (data[varName])
+					baseValue = data[varName];
+				vars[varName] = baseValue;
+			}
+			levelTable.appendChild(tr);
+
+			const minLevel = data['spellLevel'] ?? 1;
+			const maxLevel = Math.max(...Object.keys(levelData));
+			for (let level = minLevel; level <= maxLevel; level++) {
+				const bonus = levelData[level] ?? [];
+				for (const [varName, op, num] of bonus) {
+					if (op === '+=')
+						vars[varName] += num;
+					else if (op === '-=')
+						vars[varName] -= num;
+				}
+
+				tr = document.createElement('tr');
+				tr.innerHTML = `<td>${level}</td>`
+				for (const varName of varNames)
+					tr.innerHTML += `<td>${numFormat.format(vars[varName])}</td>`;
+				levelTable.appendChild(tr);
+			}
+			section.appendChild(levelTable);
+		}
 
 		if (data['spellTags'] !== null)
 			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;

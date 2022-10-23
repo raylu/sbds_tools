@@ -62,6 +62,7 @@ def prepare_spells() -> dict:
 	}
 	fields = [
 		'spellName',
+		'spellLevel',
 		'baseDamage',
 		'baseCooldown',
 		'projectileAmount',
@@ -129,6 +130,10 @@ def parse_level_data(path: str) -> dict[int, tuple]:
 		level = int(pattern.children[0].value)
 		for stmt in stmts:
 			level_data[level].extend(level_bonuses(stmt))
+
+	if 1 in level_data:
+		assert len(level_data[1]) == 0
+		del level_data[1]
 	return level_data
 
 def level_bonuses(stmt: lark.tree.Tree):
