@@ -2,10 +2,15 @@
 	box-sizing: border-box;
 }
 
+@font-face {
+    font-family: 'Noto Sans JP';
+    src: url('/static/data/NotoSansJP-Regular.otf');
+}
+
 body {
 	background-color: #000;
 	color: #aaa;
-	font: 18px monospace;
+	font: 18px 'Noto Sans JP',sans-serif;
 }
 
 a:link, a:visited, a:active {

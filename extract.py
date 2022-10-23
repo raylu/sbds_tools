@@ -17,6 +17,13 @@ def main():
 	for d in ['static/data', 'static/data/spells']:
 		os.mkdir(d)
 
+	assets = [
+		('UI/Font/Japanese-Noto Sans/NotoSansJP-Regular.otf', 'NotoSansJP-Regular.otf'),
+	]
+	for src, dst in assets:
+		print(src, '→', dst)
+		os.link('extracted/' + src, 'static/data/' + dst)
+
 	langs, translations = prepare_translations()
 	with open('static/data/translations.json', 'w') as f:
 		json.dump({'languages': list(langs), 'translations': translations}, f, indent='\t')
