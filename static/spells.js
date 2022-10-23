@@ -58,7 +58,14 @@
 		section.innerHTML += `<div>base cooldown: ${data['baseCooldown']}</div>`;
 		section.innerHTML += `<div>projectiles: ${data['projectileAmount']}</div>`;
 		section.innerHTML += `<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
+		renderLevels(section, data);
 
+		if (data['spellTags'] !== null)
+			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
+		return section;
+	}
+
+	function renderLevels(section, data) {
 		const levels = document.createElement('div');
 		levels.innerHTML = 'levels';
 		if (data['levelUpDescriptions'] !== null)
@@ -106,10 +113,6 @@
 			}
 			section.appendChild(levelTable);
 		}
-
-		if (data['spellTags'] !== null)
-			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
-		return section;
 	}
 
 	function translate(s) {
