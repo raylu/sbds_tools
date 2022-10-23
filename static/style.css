@@ -74,20 +74,44 @@ main.root {
 	margin-top: 50px;
 }
 
+main.spells section {
+	display: flex;
+	flex-direction: column;
+}
 main.spells section.evolved {
 	margin-left: 100px;
 }
+main.spells section .spell_base {
+	display: flex;
+	justify-content: space-between;
+}
+main.spells section .spell_base img {
+	vertical-align: top;
+}
+main.spells section .spell_base h3 {
+	display: inline;
+	color: #fc0;
+}
 main.spells section div {
 	margin: 0.5em;
+	color: #0cf;
 }
 main.spells section .levels {
 	display: none;
+	flex-direction: column;
+	align-items: center;
 }
 main.spells section .levels.visible {
-	display: block;
+	display: flex;
 }
-main.spells section .levels .level {
-	margin: 0 0 0 4ch;
+main.spells section .levels table {
+	color: #aaa;
+	border-collapse: collapse;
+}
+main.spells section .levels table td {
+	padding: 0 5px;
+	text-align: right;
+	border: 1px solid #333;
 }
 
 footer {

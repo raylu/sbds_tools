@@ -51,17 +51,25 @@
 	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
 	function renderSpell(spellID, data) {
 		const section = document.createElement('section');
-		const name = translate(data['spellName']);
-		section.innerHTML = `<img loading="lazy" src="/static/data/spells/${spellID}.png">`;
-		section.innerHTML += `<h3>${name}:</h3>`;
-		section.innerHTML += `<div>base damage: ${data['baseDamage']}</div>`;
-		section.innerHTML += `<div>base cooldown: ${data['baseCooldown']}</div>`;
-		section.innerHTML += `<div>projectiles: ${data['projectileAmount']}</div>`;
-		section.innerHTML += `<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
-		renderLevels(section, data);
 
+		const spellBase = document.createElement('div');
+		spellBase.classList.add('spell_base');
+		const name = translate(data['spellName']);
+		spellBase.innerHTML = `<div>
+				<img loading="lazy" src="/static/data/spells/${spellID}.png">
+				<h3>${name}</h3>
+			</div>
+			<div>
+				<div>base damage: ${data['baseDamage']}</div>
+				<div>base cooldown: ${data['baseCooldown']}</div>
+				<div>projectiles: ${data['projectileAmount']}</div>
+				<div>projectile delay: ${data['multiProjectileDelay']}</div>
+			</div>`;
+		section.appendChild(spellBase);
 		if (data['spellTags'] !== null)
 			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
+
+		renderLevels(section, data);
 		return section;
 	}
 
@@ -69,11 +77,13 @@
 		section.innerHTML += '<button class="level_toggle">levels</button>';
 		const levels = document.createElement('div');
 		levels.classList.add('levels');
+		const levelDescs = document.createElement('div');
 		if (data['levelUpDescriptions'] !== null)
 			data['levelUpDescriptions'].forEach((desc, i) => {
 				const translated = desc.replaceAll(/[A-Z_]+/g, translate);
-				levels.innerHTML += `<div class="level">${i+1}: ${translated}\n</div>`;
+				levelDescs.innerHTML += `<div>${i+1}: ${translated}\n</div>`;
 			});
+		levels.appendChild(levelDescs);
 		section.appendChild(levels);
 
 		if (data['levelData'] !== null) {
@@ -85,7 +95,7 @@
 			});
 			const vars = {};
 			let tr = document.createElement('tr');
-			tr.innerHTML = '<td></td>';
+			tr.innerHTML = '<td>level</td>';
 			for (const varName of varNames) {
 				tr.innerHTML += `<td>${varName}</td>`;
 				let baseValue = 0;
