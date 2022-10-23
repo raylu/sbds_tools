@@ -78,7 +78,6 @@ def prepare_spells() -> dict:
 		'evolveList',
 		'spellTags',
 	]
-	# TODO: infero and acid breath cooldowns are unknown
 	unparseable_level_data = [
 		'SPELL_SHRINE_COLDFRONT',
 		'SPELL_SPIRIT_SHIELD',
@@ -97,6 +96,8 @@ def prepare_spells() -> dict:
 			spell_id = node['spellID']
 			spell = {key: node.get(key) for key in fields}
 			assert prefix == 'SPELL' or spell['evolveList'] is None
+			if spell['baseCooldown'] is None:
+				spell['baseCooldown'] = 1.0
 
 			icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
 			resource = scene.find_ext_resource(id=icon.id)
