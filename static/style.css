@@ -74,53 +74,58 @@ main.root {
 	margin-top: 50px;
 }
 
-main.spells section {
+main input#search {
+	display: block;
+	margin: 0 auto;
+}
+
+.spells section {
 	display: flex;
 	flex-direction: column;
 }
-main.spells section.evolved {
+.spells section.evolved {
 	margin-left: 100px;
 }
-main.spells section .spell_base {
+.spells section .spell_base {
 	display: flex;
 	justify-content: space-between;
 }
-main.spells section .spell_base img.spell_icon {
+.spells section .spell_base img.spell_icon {
 	height: 96px;
 	vertical-align: top;
 }
-main.spells section .spell_base h3 {
+.spells section .spell_base h3 {
 	margin: 0;
 	display: inline;
 	color: #fc0;
 }
-main.spells section .spell_base .stats {
+.spells section .spell_base .stats {
 	width: 40%;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
 }
-main.spells section button.level_toggle {
+.spells section button.level_toggle {
 	width: 75px;
 	margin: 1em auto;
 }
-main.spells section .levels {
+.spells section .levels {
 	display: none;
 	flex-direction: column;
 	align-items: center;
 }
-main.spells section .levels.visible {
+.spells section .levels.visible {
 	display: flex;
 }
-main.spells section .levels .level_up_desc {
+.spells section .levels .level_up_desc {
 	color: #0cf;
 }
-main.spells section .levels table {
+.spells section .levels table {
 	margin: 1em 0;
 	border-collapse: collapse;
 	color: #aaa;
 }
-main.spells section .levels table td {
+.spells section .levels table td {
 	padding: 0 5px;
 	text-align: right;
 	border: 1px solid #333;

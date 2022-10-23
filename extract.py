@@ -56,6 +56,8 @@ def prepare_spells() -> dict:
 			prefix, name, paths = m.groups()
 			if prefix in ('SPELL', 'EVOLVED'):
 				path = path_re.match(paths).group(1)
+				if prefix == 'SPELL' and name == 'INDRA_SIGIL':
+					prefix = 'EVOLVED'
 				spell_paths[prefix].append(path)
 			else:
 				assert prefix == 'AURA'

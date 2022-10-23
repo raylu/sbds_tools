@@ -25,27 +25,53 @@
 			langs.querySelectorAll('div').forEach((div) => div.classList.remove('selected'));
 			event.target.classList.add('selected');
 			lang = newLang;
-			render();
+			render(search.value);
 		}
 	});
 
-	const main = document.querySelector('main');
-	function render() {
-		main.innerHTML = '';
-		for (const [spellID, data] of Object.entries(spells['SPELL'])) {
-			main.appendChild(renderSpell(spellID, data));
+	const search = document.querySelector('input#search');
+	let searchTimeout = null;
+	search.addEventListener('input', (event) => {
+		const query = event.target.value;
+		if (searchTimeout !== null)
+			clearTimeout(searchTimeout);
+		searchTimeout = setTimeout(() => render(query), 200);
+	});
 
-			for (const evolveName of data['evolveList'] || []) {
-				let evolveData;
-				if (evolveName == 'SPELL_INDRA_SIGIL')
-					evolveData = spells['SPELL'][evolveName];
-				else
-					evolveData = spells['EVOLVED'][evolveName];
-				const section = renderSpell(evolveName, evolveData);
-				section.classList.add('evolved');
-				main.appendChild(section);
+	const spellsDiv = document.querySelector('.spells');
+	function render(query) {
+		spellsDiv.innerHTML = '';
+		if (query !== null)
+			query = query.toLowerCase();
+		for (const [spellID, data] of Object.entries(spells['SPELL'])) {
+			if (query === null || queryMatch(query, data)) {
+				spellsDiv.appendChild(renderSpell(spellID, data));
+
+				for (const evolveID of data['evolveList'] ?? []) {
+					const evolveData = spells['EVOLVED'][evolveID];
+					const section = renderSpell(evolveID, evolveData);
+					section.classList.add('evolved');
+					spellsDiv.appendChild(section);
+				}
 			}
 		}
+	}
+
+	function queryMatch(query, data) {
+		if (data['spellName'] !== null) {
+			const name = translate(data['spellName']);
+			if (name.toLowerCase().indexOf(query) !== -1)
+				return true;
+			for (const tag of data['spellTags'] ?? [])
+				if (tag.toLowerCase() === query)
+					return true;
+		}
+		for (const evolveID of data['evolveList'] ?? []) {
+			const evolveData = spells['EVOLVED'][evolveID];
+			if (queryMatch(query, evolveData))
+				return true;
+		}
+		return false;
 	}
 
 	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
@@ -129,7 +155,7 @@
 			levels.appendChild(levelTable);
 		}
 	}
-	main.addEventListener('click', (event) => {
+	spellsDiv.addEventListener('click', (event) => {
 		if (event.target.tagName === 'BUTTON') {
 			const levels = event.target.parentElement.querySelector('.levels');
 			levels.classList.toggle('visible');
@@ -144,5 +170,5 @@
 			return s;
 	}
 
-	render();
+	render(null);
 })();
