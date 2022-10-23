@@ -92,9 +92,16 @@ main.spells section .spell_base h3 {
 	display: inline;
 	color: #fc0;
 }
+main.spells section .spell_base .stats {
+	width: 40%;
+}
 main.spells section div {
 	margin: 0.5em;
 	color: #0cf;
+}
+main.spells section button.level_toggle {
+	width: 75px;
+	margin: 0 auto;
 }
 main.spells section .levels {
 	display: none;

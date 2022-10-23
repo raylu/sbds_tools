@@ -58,16 +58,18 @@
 		spellBase.innerHTML = `<div>
 				<img loading="lazy" src="/static/data/spells/${spellID}.png">
 				<h3>${name}</h3>
-			</div>
-			<div>
-				<div>base damage: ${data['baseDamage']}</div>
-				<div>base cooldown: ${data['baseCooldown']}</div>
-				<div>projectiles: ${data['projectileAmount']}</div>
-				<div>projectile delay: ${data['multiProjectileDelay']}</div>
 			</div>`;
-		section.appendChild(spellBase);
+		const stats = document.createElement('div');
+		stats.classList.add('stats');
+		stats.innerHTML = `
+			<div>base damage: ${data['baseDamage']}</div>
+			<div>base cooldown: ${data['baseCooldown']}</div>
+			<div>projectiles: ${data['projectileAmount']}</div>
+			<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
 		if (data['spellTags'] !== null)
-			section.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
+			stats.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
+		spellBase.appendChild(stats);
+		section.appendChild(spellBase);
 
 		renderLevels(section, data);
 		return section;
@@ -78,10 +80,13 @@
 		const levels = document.createElement('div');
 		levels.classList.add('levels');
 		const levelDescs = document.createElement('div');
+		const minLevel = data['spellLevel'] ?? 1;
 		if (data['levelUpDescriptions'] !== null)
 			data['levelUpDescriptions'].forEach((desc, i) => {
-				const translated = desc.replaceAll(/[A-Z_]+/g, translate);
-				levelDescs.innerHTML += `<div>${i+1}: ${translated}\n</div>`;
+				if (i+1 >= minLevel) {
+					const translated = desc.replaceAll(/[A-Z_]+/g, translate);
+					levelDescs.innerHTML += `<div>${i+1}: ${translated}\n</div>`;
+				}
 			});
 		levels.appendChild(levelDescs);
 		section.appendChild(levels);
@@ -105,7 +110,6 @@
 			}
 			levelTable.appendChild(tr);
 
-			const minLevel = data['spellLevel'] ?? 1;
 			const maxLevel = Math.max(...Object.keys(levelData));
 			for (let level = minLevel; level <= maxLevel; level++) {
 				const bonus = levelData[level] ?? [];
