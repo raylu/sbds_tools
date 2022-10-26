@@ -61,6 +61,8 @@ def prepare_spells() -> dict:
 				spell_paths[prefix].append(path)
 			else:
 				assert prefix == 'AURA'
+				if name == 'DEATHBOUND':
+					continue
 				paths = re.match(r'\[(.+), (.+), "\w+"\]', paths).groups()
 				paths = [path_re.match(path).group(1) for path in paths]
 				spell_paths[prefix].append(paths)
@@ -68,6 +70,7 @@ def prepare_spells() -> dict:
 	spells = {
 		'SPELL': {},
 		'EVOLVED': {},
+		'AURA': [],
 	}
 	fields = [
 		'spellName',
@@ -122,6 +125,34 @@ def prepare_spells() -> dict:
 
 			spells[prefix][spell_id] = spell
 	
+	fields = [
+		'titleText',
+		'description',
+	]
+	for paths in spell_paths['AURA']:
+		# always 2 paths; second is evolution
+		aura_pair = []
+		for path in paths:
+			scene = godot_parser.load('extracted/' + path)
+			node = scene.find_node(parent=None)
+			aura = {key: node.get(key) for key in fields}
+			aura_id = node['titleText']
+
+			icon = node.get('sprite')
+			if icon is not None:
+				resource = scene.find_ext_resource(id=icon.id)
+			else:
+				resource = scene.find_ext_resource(id=node['iconOnlySprite'].id)
+				icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+				resource = icon_scene.find_ext_resource(type='Texture')
+			assert resource.path.startswith('res://')
+			img_path = resource.path[len('res://'):]
+			print(aura_id, '→', img_path)
+			os.link('extracted/' + img_path, f'static/data/spells/{aura_id}.png')
+
+			aura_pair.append(aura)
+		spells['AURA'].append(aura_pair)
+
 	return spells
 
 def parse_level_data(path: str) -> dict[int, tuple]:

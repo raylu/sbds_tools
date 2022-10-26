@@ -44,7 +44,7 @@
 		if (query !== null)
 			query = query.toLowerCase();
 		for (const [spellID, data] of Object.entries(spells['SPELL'])) {
-			if (query === null || queryMatch(query, data)) {
+			if (query === null || queryMatchSpell(query, data)) {
 				spellsDiv.appendChild(renderSpell(spellID, data));
 
 				for (const evolveID of data['evolveList'] ?? []) {
@@ -55,9 +55,16 @@
 				}
 			}
 		}
+		for (const auraPair of spells['AURA']) {
+			if (query === null || queryMatchAura(query, auraPair)) {
+				const [normalAura, evolvedAura] = auraPair;
+				spellsDiv.appendChild(renderAura(normalAura, false));
+				spellsDiv.appendChild(renderAura(evolvedAura, true));
+			}
+		}
 	}
 
-	function queryMatch(query, data) {
+	function queryMatchSpell(query, data) {
 		if (data['spellName'] !== null) {
 			const name = translate(data['spellName']);
 			if (name.toLowerCase().indexOf(query) !== -1)
@@ -68,7 +75,7 @@
 		}
 		for (const evolveID of data['evolveList'] ?? []) {
 			const evolveData = spells['EVOLVED'][evolveID];
-			if (queryMatch(query, evolveData))
+			if (queryMatchSpell(query, evolveData))
 				return true;
 		}
 		return false;
@@ -168,6 +175,33 @@
 			levels.classList.toggle('visible');
 		}
 	});
+
+	function queryMatchAura(query, auraPair) {
+		for (const data of auraPair) {
+			let name = translate(data['titleText']);
+			if (name.toLowerCase().indexOf(query) !== -1)
+				return true;
+		}
+		return false;
+	}
+
+	function renderAura(data, evolved) {
+		const section = document.createElement('section');
+		if (evolved)
+			section.classList.add('evolved');
+		const name = translate(data['titleText']);
+		const description = data['description'].replaceAll(/[A-Z_]+/g, translate);
+		section.innerHTML = `<div class="spell_base">
+				<div class="spell_base_left">
+					<h3>${name}</h3>
+					<img loading="lazy" src="/static/data/spells/${data['titleText']}.png" class="spell_icon">
+				</div>
+				<div class="stats">
+					<div>${description}</div>
+				</div>
+			</div>`
+		return section;
+	}
 
 	function translate(s) {
 		const tr = translations[s];

@@ -111,6 +111,7 @@ main input#search {
 	height: 96px;
 }
 .spells section .spell_base .stats {
+	max-width: 300px;
 	padding-right: 10px;
 	display: flex;
 	flex-direction: column;
