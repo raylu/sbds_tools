@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+import typing
 
 import gdtoolkit.parser # .gd/script parser
 import godot_parser # .tscn/scene parser
@@ -29,6 +30,8 @@ def main():
 		json.dump({'languages': list(langs), 'translations': translations}, f, indent='\t')
 	with open('static/data/spells.json', 'w') as f:
 		json.dump(prepare_spells(), f, indent='\t')
+	with open('static/data/buffs.json', 'w') as f:
+		json.dump(prepare_buffs(), f, indent='\t')
 
 def prepare_translations() -> tuple[set, dict[str, dict[str, str]]]:
 	translations = {}
@@ -158,20 +161,10 @@ def prepare_spells() -> dict:
 def parse_level_data(path: str) -> dict[int, tuple]:
 	with open(path, 'r', encoding='ascii') as f:
 		tree = gdtoolkit.parser.parser.parse(f.read())
-	apply_level_bonus: lark.tree.Tree
-	(apply_level_bonus,) = tree.find_pred(
-			lambda t: t.data == 'func_def' and t.children[0].children[0].value == 'apply_level_bonus')
-	match_tree: lark.tree.Tree
-	(match_tree,) = apply_level_bonus.find_data('match_stmt')
-	assert match_tree.children[0].children[0].value == 'level'
+	apply_level_bonus = gd_find_func(tree, 'apply_level_bonus')
 
 	level_data = collections.defaultdict(list)
-	for branch in match_tree.children[1:]:
-		branch: lark.tree.Tree
-		assert branch.data == 'match_branch'
-		pattern, *stmts = branch.children
-		assert pattern.data == 'pattern'
-		level = int(pattern.children[0].value)
+	for level, stmts in iter_match_branches(apply_level_bonus, 'level'):
 		for stmt in stmts:
 			level_data[level].extend(level_bonuses(stmt))
 
@@ -207,6 +200,98 @@ def level_bonuses(stmt: lark.tree.Tree):
 		yield getattr_expr.children[2].value, op, num
 	else:
 		raise AssertionError
+
+def prepare_buffs():
+	with open('extracted/CosmicShrine.gd', 'r', encoding='ascii') as f:
+		tree = gdtoolkit.parser.parser.parse(f.read())
+	set_shrine = gd_find_func(tree, 'set_shrine')
+
+	buff_pairs = []
+	for shrine_index, stmts in iter_match_branches(set_shrine, 'shrineIndex'):
+		buff_pairs.append(parse_buff(stmts))
+	return buff_pairs
+
+def parse_buff(stmts: list[lark.tree.Tree]) -> tuple[dict[str, typing.Any], dict[str, typing.Any]]:
+	player_buff: dict[str, typing.Any] = {}
+	monster_buff: dict[str, typing.Any] = {}
+	for stmt in stmts:
+		if stmt.data == 'if_stmt':
+			(if_branch,) = stmt.children
+			assert if_branch.data == 'if_branch'
+			assert if_branch.children[0].children[0] == 'affectsEnemyInstead'
+			for enemy_stmt in if_branch.children[1:]:
+				parsed = parse_buff_stmt(enemy_stmt)
+				if parsed is None:
+					continue
+				left, right = parsed
+				monster_buff[left] = right
+		else:
+			parsed = parse_buff_stmt(stmt)
+			if parsed is None:
+				continue
+			left, right = parsed
+			player_buff[left] = right
+
+	return player_buff, monster_buff
+
+def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typing.Any]]:
+	if stmt.data != 'expr_stmt':
+		return
+
+	(expr,) = stmt.children
+	assert expr.data == 'expr'
+	(assnmnt_expr,) = expr.children
+	if assnmnt_expr.data in ['standalone_call', 'getattr_call']:
+		return
+	assert assnmnt_expr.data == 'assnmnt_expr'
+	left_tree, op, right_tree = assnmnt_expr.children
+	if op != '=':
+		return
+
+	if isinstance(left_tree, lark.tree.Tree) and left_tree.data == 'getattr':
+		obj, dot, attr = left_tree.children
+		assert dot == '.'
+		left = f'{obj}.{attr}'
+	else:
+		assert isinstance(left_tree, lark.lexer.Token)
+		left = str(left_tree)
+	if left == 'buffIcon.texture':
+		return
+	
+	if isinstance(right_tree, lark.lexer.Token):
+		right = right_tree
+		if right.type == 'NUMBER':
+			right = float(right)
+	elif right_tree.data == 'mdr_expr': # TODO
+		return
+	elif right_tree.data == 'getattr_call':
+		# assnmnt_expr: spell = RunInformation.playerInfo.learn_spell("SPELL_SHRINE_LIGHTNING", true)
+		assert left == 'spell'
+		return
+	else:
+		right: lark.lexer.Token
+		(right,) = right_tree.children
+		right = right.strip('"')
+	
+	if left == 'shrineText.text':
+		left = 'shrineText'
+	return left, right
+
+def gd_find_func(tree: lark.tree.Tree, name: str) -> lark.tree.Tree:
+	(func,) = tree.find_pred(lambda t: t.data == 'func_def' and t.children[0].children[0].value == name)
+	return func
+
+def iter_match_branches(tree: lark.tree.Tree,
+		match_expr: str) -> typing.Generator[tuple[int, list[lark.tree.Tree]], None, None]:
+	(match_tree,) = tree.find_data('match_stmt')
+	assert match_tree.children[0].children[0].value == match_expr
+
+	for branch in match_tree.children[1:]:
+		branch: lark.tree.Tree
+		assert branch.data == 'match_branch'
+		pattern, *stmts = branch.children
+		assert pattern.data == 'pattern'
+		yield int(pattern.children[0].value), stmts
 
 if __name__ == '__main__':
 	main()
