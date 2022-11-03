@@ -1,33 +1,15 @@
 'use strict';
 
+import {fetchJSON, Translate} from './common.mjs'
+
 (async () => {
-	async function fetchJSON(path) {
-		const res = await fetch(path);
-		return await res.json();
-	}
 	const spellsPromise = fetchJSON('/static/data/spells.json');
 	const translationPromise = fetchJSON('/static/data/translations.json');
 	const spells = await spellsPromise;
 	const {languages, translations} = await translationPromise;
 
-	const langs = document.querySelector('#langs');
-	let lang = 'en';
-	for (const langCode of languages) {
-		const div = document.createElement('div');
-		div.innerText = div.dataset['lang'] = langCode;
-		if (langCode === lang)
-			div.classList.add('selected');
-		langs.appendChild(div);
-	}
-	langs.addEventListener('click', (event) => {
-		const newLang = event.target.dataset['lang'];
-		if (newLang) {
-			langs.querySelectorAll('div').forEach((div) => div.classList.remove('selected'));
-			event.target.classList.add('selected');
-			lang = newLang;
-			render(search.value);
-		}
-	});
+	const translator = new Translate(languages, translations,
+			document.querySelector('#langs'), () => render(search.value));
 
 	const search = document.querySelector('input#search');
 	let searchTimeout = null;
@@ -66,7 +48,7 @@
 
 	function queryMatchSpell(query, data) {
 		if (data['spellName'] !== null) {
-			const name = translate(data['spellName']);
+			const name = translator.translate(data['spellName']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
 			for (const tag of data['spellTags'] ?? [])
@@ -89,7 +71,7 @@
 		spellBase.classList.add('spell_base');
 		const spellBaseLeft = document.createElement('div');
 		spellBaseLeft.classList.add('spell_base_left');
-		const name = translate(data['spellName']);
+		const name = translator.translate(data['spellName']);
 		spellBaseLeft.innerHTML = `<h3>${name}</h3>`;
 		if (spellID.indexOf('_SHRINE_') !== -1)
 			spellBaseLeft.innerHTML += '<span> (shrine)</span>';
@@ -124,7 +106,7 @@
 		if (data['levelUpDescriptions'] !== null)
 			data['levelUpDescriptions'].forEach((desc, i) => {
 				if (i+1 >= minLevel) {
-					const translated = desc.replaceAll(/[A-Z_]+/g, translate);
+					const translated = translator.translateAll(desc);
 					levelDescs.innerHTML += `<div>${i+1}: <span class="level_up_desc">${translated}</span></div>`;
 				}
 			});
@@ -178,7 +160,7 @@
 
 	function queryMatchAura(query, auraPair) {
 		for (const data of auraPair) {
-			let name = translate(data['titleText']);
+			let name = translator.translate(data['titleText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
 		}
@@ -189,8 +171,8 @@
 		const section = document.createElement('section');
 		if (evolved)
 			section.classList.add('evolved');
-		const name = translate(data['titleText']);
-		const description = data['description'].replaceAll(/[A-Z_]+/g, translate);
+		const name = translator.translate(data['titleText']);
+		const description = translator.translateAll(data['description']);
 		section.innerHTML = `<div class="spell_base">
 				<div class="spell_base_left">
 					<h3>${name}</h3>
@@ -201,14 +183,6 @@
 				</div>
 			</div>`
 		return section;
-	}
-
-	function translate(s) {
-		const tr = translations[s];
-		if (tr)
-			return tr[lang];
-		else // translation not found
-			return s;
 	}
 
 	render(null);
