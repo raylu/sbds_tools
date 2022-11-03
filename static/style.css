@@ -131,7 +131,7 @@ main input#search {
 .spells section .levels.visible {
 	display: flex;
 }
-.spells section .levels .level_up_desc, .buffs section .buff_desc {
+.spells section .levels .level_up_desc, .buffs section .buff_right .buff_desc {
 	color: #0cf;
 }
 .spells section .levels table {
@@ -149,10 +149,8 @@ main input#search {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 }
-.buffs section .buff_right {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-evenly;
+.buffs section .buff_right .buff_desc {
+	margin-bottom: 1em;
 }
 
 footer {
@@ -177,7 +175,11 @@ footer {
 		flex-direction: column;
 		align-items: flex-start;
 	}
-	.spells section .levels table td {
+	.spells section .levels table td, .buffs section .buff_right div {
 		overflow-wrap: anywhere;
+	}
+	.buffs section {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr;
 	}
 }
