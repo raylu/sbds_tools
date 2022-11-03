@@ -83,11 +83,12 @@ import {fetchJSON, Translate} from './common.mjs'
 		spellBase.appendChild(spellBaseLeft);
 		const stats = document.createElement('div');
 		stats.classList.add('stats');
+		const baseStats = data['baseStats'];
 		stats.innerHTML = `
-			<div>base damage: ${data['baseDamage']}</div>
-			<div>base cooldown: ${data['baseCooldown']}</div>
-			<div>projectiles: ${data['projectileAmount']}</div>
-			<div>projectile delay: ${data['multiProjectileDelay']}</div>`;
+			<div>base damage: ${baseStats['baseDamage']}</div>
+			<div>base cooldown: ${baseStats['baseCooldown']}</div>
+			<div>projectiles: ${baseStats['projectileAmount']}</div>
+			<div>projectile delay: ${baseStats['multiProjectileDelay']}</div>`;
 		if (data['spellTags'] !== null)
 			stats.innerHTML += `<div>tags: ${data['spellTags'].join(', ')}</div>`;
 		spellBase.appendChild(stats);
@@ -115,7 +116,7 @@ import {fetchJSON, Translate} from './common.mjs'
 
 		if (data['levelData'] !== null) {
 			const levelTable = document.createElement('table');
-			const {levelData} = data;
+			const {levelData, baseStats} = data;
 			const varNames = new Set();
 			Object.values(levelData).forEach((stmts) => {
 				stmts.forEach((stmt) => varNames.add(stmt[0]));
@@ -126,8 +127,8 @@ import {fetchJSON, Translate} from './common.mjs'
 			for (const varName of varNames) {
 				tr.innerHTML += `<td>${varName}</td>`;
 				let baseValue = 0;
-				if (data[varName])
-					baseValue = data[varName];
+				if (baseStats[varName])
+					baseValue = baseStats[varName];
 				vars[varName] = baseValue;
 			}
 			levelTable.appendChild(tr);
@@ -140,6 +141,8 @@ import {fetchJSON, Translate} from './common.mjs'
 						vars[varName] += num;
 					else if (op === '-=')
 						vars[varName] -= num;
+					else if (op === '*=')
+						vars[varName] *= num;
 				}
 
 				tr = document.createElement('tr');

@@ -78,14 +78,16 @@ def prepare_spells() -> dict:
 	fields = [
 		'spellName',
 		'spellLevel',
-		'baseDamage',
-		'baseCooldown',
-		'projectileAmount',
-		'multiProjectileDelay',
 		'levelUpDescriptions',
 		'evolveList',
 		'spellTags',
 		'learnDescription',
+	]
+	base_stat_fields = [
+		'baseDamage',
+		'baseCooldown',
+		'projectileAmount',
+		'multiProjectileDelay',
 	]
 	unparseable_level_data = [
 		'SPELL_SHRINE_COLDFRONT',
@@ -105,8 +107,11 @@ def prepare_spells() -> dict:
 			spell_id = node['spellID']
 			spell = {key: node.get(key) for key in fields}
 			assert prefix == 'SPELL' or spell['evolveList'] is None
-			if spell['baseCooldown'] is None:
-				spell['baseCooldown'] = 1.0
+
+			base_stats = {key: node.get(key) for key in base_stat_fields}
+			if base_stats['baseCooldown'] is None:
+				base_stats['baseCooldown'] = 1.0
+			spell['baseStats'] = base_stats
 
 			icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
 			resource = scene.find_ext_resource(id=icon.id)
@@ -123,7 +128,8 @@ def prepare_spells() -> dict:
 			assert resource.path.startswith('res://')
 			level_data = None
 			if spell_id not in unparseable_level_data:
-				level_data = parse_level_data('extracted/' + resource.path[len('res://'):])
+				level_data, extra_base_stats = parse_level_data('extracted/' + resource.path[len('res://'):])
+				base_stats.update(extra_base_stats)
 			spell['levelData'] = level_data
 
 			spells[prefix][spell_id] = spell
@@ -158,11 +164,13 @@ def prepare_spells() -> dict:
 
 	return spells
 
-def parse_level_data(path: str) -> dict[int, tuple]:
+def parse_level_data(path: str) -> tuple[dict[int, list], dict[str, float]]:
 	with open(path, 'r', encoding='ascii') as f:
 		tree = gdtoolkit.parser.parser.parse(f.read())
-	apply_level_bonus = gd_find_func(tree, 'apply_level_bonus')
 
+	base_stats = {k: v for k, v in iter_base_stats(tree)}
+
+	apply_level_bonus = gd_find_func(tree, 'apply_level_bonus')
 	level_data = collections.defaultdict(list)
 	for level, stmts in iter_match_branches(apply_level_bonus, 'level'):
 		for stmt in stmts:
@@ -171,7 +179,19 @@ def parse_level_data(path: str) -> dict[int, tuple]:
 	if 1 in level_data:
 		assert len(level_data[1]) == 0
 		del level_data[1]
-	return level_data
+	return level_data, base_stats
+
+def iter_base_stats(tree: lark.tree.Tree):
+	for stmt in tree.children:
+		if stmt.data != 'class_var_stmt':
+			continue
+		(var_assigned,) = stmt.children
+		assert var_assigned.data == 'var_assigned'
+		left, right, = var_assigned.children
+		assert right.data == 'expr'
+		(value,) = right.children
+		if isinstance(value, lark.lexer.Token) and value.type == 'NUMBER':
+			yield left, float(value.value)
 
 def level_bonuses(stmt: lark.tree.Tree):
 	if stmt.data == 'for_stmt':
@@ -190,7 +210,7 @@ def level_bonuses(stmt: lark.tree.Tree):
 	assert assnmnt_expr.data == 'assnmnt_expr', stmt.pretty()
 
 	op = assnmnt_expr.children[1].value
-	assert op in ('+=', '-=')
+	assert op in ('+=', '-=', '*=')
 	num = float(assnmnt_expr.children[2].value)
 	if isinstance(assnmnt_expr.children[0], lark.lexer.Token):
 		yield assnmnt_expr.children[0].value, op, num
