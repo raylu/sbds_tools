@@ -29,12 +29,12 @@ import {fetchJSON, Translate} from './common.mjs'
 			if (query === null || queryMatchBuff(query, buffPair)) {
 				const [shrine, enemy] = buffPair;
 				buffsDiv.appendChild(renderBuff(shrine['shrineText'], shrine, false));
-				buffsDiv.appendChild(renderBuff(shrine['shrineText'], enemy, true));
+				if (enemy['shrineText'])
+					buffsDiv.appendChild(renderBuff(shrine['shrineText'], enemy, true));
 			}
 		}
 	}
 
-	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
 	function renderBuff(playerBuffId, data, isEnemy) {
 		const section = document.createElement('section');
 		if (isEnemy)
@@ -53,6 +53,8 @@ import {fetchJSON, Translate} from './common.mjs'
 
 	function queryMatchBuff(query, buffPair) {
 		for (const data of buffPair) {
+			if (!data['shrineText'])
+				continue;
 			let name = translator.translate(data['shrineText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
