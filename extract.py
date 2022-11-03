@@ -287,7 +287,16 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 		if right.type == 'NUMBER':
 			right = float(right)
 	elif right_tree.data == 'mdr_expr': # TODO
-		return
+		modifier, times, effectiveness = right_tree.children
+		assert times == '*'
+		assert effectiveness in ('playerbuff', 'enemybuff')
+		if isinstance(modifier, lark.lexer.Token):
+			assert modifier.type == 'NUMBER'
+			right = float(modifier.value)
+		else:
+			assert isinstance(modifier, lark.tree.Tree)
+			assert modifier.data == 'getattr'
+			right = ''.join(modifier.children)
 	elif right_tree.data == 'standalone_call':
 		# assnmnt_expr: buffIcon.texture = preload("res://UI/Icons/Icon_HasteBuff.png")
 		assert right_tree.children[0] == 'preload'

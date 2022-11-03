@@ -20,6 +20,7 @@ import {fetchJSON, Translate} from './common.mjs'
 		searchTimeout = setTimeout(() => render(query), 200);
 	});
 
+	const range = document.createRange();
 	const buffsDiv = document.querySelector('.buffs');
 	function render(query) {
 		buffsDiv.innerHTML = '';
@@ -35,6 +36,7 @@ import {fetchJSON, Translate} from './common.mjs'
 		}
 	}
 
+	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
 	function renderBuff(playerBuffId, data, isEnemy) {
 		const section = document.createElement('section');
 		if (isEnemy)
@@ -44,10 +46,20 @@ import {fetchJSON, Translate} from './common.mjs'
 				<h3>${name}</h3>
 				<img loading="lazy" src="/static/data/buffs/${playerBuffId}.png" class="buff_icon">
 			</div>`;
+		const buffRight = range.createContextualFragment('<div class="buff_right"></div>').firstChild;
 		if (data['notificationText']) {
 			const description = translator.translateAll(data['notificationText']);
-			section.innerHTML += `<div class="buff_desc">${description}</div>`;
+			buffRight.innerHTML += `<div class="buff_desc">${description}</div>`;
 		}
+		for (let [key, value] of Object.entries(data)) {
+			const split = key.split('.');
+			if (split.length < 2 || (split[0] != 'buffZone' && split[0] != 'enemyBuffZone'))
+				continue;
+			if (value instanceof Number)
+				value = numFormat.format(value)
+			buffRight.innerHTML += `<div>${split[1]}: ${value}</div>`;
+		}
+		section.appendChild(buffRight);
 		return section;
 	}
 

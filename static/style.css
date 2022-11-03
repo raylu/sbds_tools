@@ -149,6 +149,11 @@ main input#search {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 }
+.buffs section .buff_right {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+}
 
 footer {
 	margin-top: 100px;
