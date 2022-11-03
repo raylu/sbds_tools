@@ -15,7 +15,7 @@ import lark.tree
 
 def main():
 	shutil.rmtree('static/data', ignore_errors=True)
-	for d in ['static/data', 'static/data/spells']:
+	for d in ['static/data', 'static/data/spells', 'static/data/buffs']:
 		os.mkdir(d)
 
 	assets = [
@@ -208,7 +208,13 @@ def prepare_buffs():
 
 	buff_pairs = []
 	for shrine_index, stmts in iter_match_branches(set_shrine, 'shrineIndex'):
-		buff_pairs.append(parse_buff(stmts))
+		player_buff, monster_buff = parse_buff(stmts)
+		buff_id = player_buff['shrineText']
+		texture = player_buff.pop('buffIcon.texture')
+		assert texture.startswith('res://'), texture
+		img_path = texture[len('res://'):]
+		os.link('extracted/' + img_path, f'static/data/buffs/{buff_id}.png')
+		buff_pairs.append((player_buff, monster_buff))
 	return buff_pairs
 
 def parse_buff(stmts: list[lark.tree.Tree]) -> tuple[dict[str, typing.Any], dict[str, typing.Any]]:
@@ -255,8 +261,6 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 	else:
 		assert isinstance(left_tree, lark.lexer.Token)
 		left = str(left_tree)
-	if left == 'buffIcon.texture':
-		return
 	
 	if isinstance(right_tree, lark.lexer.Token):
 		right = right_tree
@@ -264,6 +268,12 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 			right = float(right)
 	elif right_tree.data == 'mdr_expr': # TODO
 		return
+	elif right_tree.data == 'standalone_call':
+		# assnmnt_expr: buffIcon.texture = preload("res://UI/Icons/Icon_HasteBuff.png")
+		assert right_tree.children[0] == 'preload'
+		string = right_tree.children[2]
+		assert string.data == 'string'
+		right = string.children[0].strip('"')
 	elif right_tree.data == 'getattr_call':
 		# assnmnt_expr: spell = RunInformation.playerInfo.learn_spell("SPELL_SHRINE_LIGHTNING", true)
 		assert left == 'spell'

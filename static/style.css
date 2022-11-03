@@ -108,7 +108,7 @@ main input#search {
 	margin: 0;
 	color: #fc0;
 }
-.spells section .spell_base img.spell_icon {
+.spells section .spell_base img.spell_icon, .buffs section .buff_left img.buff_icon {
 	display: block;
 	height: 96px;
 }

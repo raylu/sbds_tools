@@ -28,21 +28,21 @@ import {fetchJSON, Translate} from './common.mjs'
 		for (const buffPair of buffs) {
 			if (query === null || queryMatchBuff(query, buffPair)) {
 				const [shrine, enemy] = buffPair;
-				buffsDiv.appendChild(renderBuff(shrine, false));
-				buffsDiv.appendChild(renderBuff(enemy, true));
+				buffsDiv.appendChild(renderBuff(shrine['shrineText'], shrine, false));
+				buffsDiv.appendChild(renderBuff(shrine['shrineText'], enemy, true));
 			}
 		}
 	}
 
 	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
-	function renderBuff(data, isEnemy) {
+	function renderBuff(playerBuffId, data, isEnemy) {
 		const section = document.createElement('section');
 		if (isEnemy)
 			section.classList.add('enemy');
 		const name = translator.translate(data['shrineText']);
 		section.innerHTML = `<div class="buff_left">
 				<h3>${name}</h3>
-				<img loading="lazy" src="/static/data/buffs/${data['shrineText']}.png" class="buff_icon">
+				<img loading="lazy" src="/static/data/buffs/${playerBuffId}.png" class="buff_icon">
 			</div>`;
 		if (data['notificationText']) {
 			const description = translator.translateAll(data['notificationText']);
