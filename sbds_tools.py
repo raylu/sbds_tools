@@ -18,6 +18,9 @@ def root(request):
 def spells_page(request):
 	return Response.render(request, 'spells.jinja2', {})
 
+def buffs_page(request):
+	return Response.render(request, 'buffs.jinja2', {})
+
 def static(request, path):
 	content_type, _ = mimetypes.guess_type(path)
 	try:
@@ -29,6 +32,7 @@ def static(request, path):
 routes = [
 	('GET', '/', root),
 	('GET', '/spells', spells_page),
+	('GET', '/buffs', buffs_page),
 	('GET', '/static/<path:path>', static),
 ]
 

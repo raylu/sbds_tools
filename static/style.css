@@ -81,18 +81,20 @@ main input#search {
 	max-width: 100%;
 }
 
-.spells {
+.spells, .buffs {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 }
-.spells section {
+.spells section, .buffs section {
 	grid-column: 1;
-	display: flex;
-	flex-direction: column;
 }
-.spells section.evolved {
+.spells section.evolved, .buffs section.enemy {
 	margin-left: 20px;
 	grid-column: 2;
+}
+.spells section {
+	display: flex;
+	flex-direction: column;
 }
 .spells section .spell_base {
 	display: flex;
@@ -101,7 +103,7 @@ main input#search {
 .spells section .spell_base .spell_base_left {
 	padding-right: 10px;
 }
-.spells section .spell_base h3 {
+.spells section .spell_base h3, .buffs .buff_left h3 {
 	display: inline;
 	margin: 0;
 	color: #fc0;
@@ -129,7 +131,7 @@ main input#search {
 .spells section .levels.visible {
 	display: flex;
 }
-.spells section .levels .level_up_desc {
+.spells section .levels .level_up_desc, .buffs section .buff_desc {
 	color: #0cf;
 }
 .spells section .levels table {
@@ -143,6 +145,11 @@ main input#search {
 	border: 1px solid #333;
 }
 
+.buffs section {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
 footer {
 	margin-top: 100px;
 	text-align: center;
@@ -151,10 +158,10 @@ footer {
 }
 
 @media (max-width: 960px) {
-	.spells {
+	.spells, .buffs {
 		grid-template-columns: 1fr;
 	}
-	.spells section.evolved {
+	.spells section.evolved, .buffs section.enemy {
 		grid-column: 1;
 	}
 	.spells section .spell_base {
