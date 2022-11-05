@@ -14,9 +14,19 @@ class Translate {
 		this.translations = translations;
 		this.clickCB = clickCB;
 
-		for (const langCode of languages) {
+		const langNames = {
+			'en': 'English',
+			'bg_BG': 'български',
+			'ja': '日本語',
+			'ru': 'Русский',
+			'yi_US': 'keys',
+			'zh_Hans_CN': '简体中文',
+			'zh_Hant_TW': '繁體中文',
+		};
+		for (const langCode of languages.sort()) {
 			const div = document.createElement('div');
-			div.innerText = div.dataset['lang'] = langCode;
+			div.innerText = langNames[langCode] ?? langCode;
+			div.dataset['lang'] = langCode;
 			if (langCode === this.lang)
 				div.classList.add('selected');
 			langs.appendChild(div);
