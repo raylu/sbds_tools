@@ -27,7 +27,7 @@ interface Aura {
 interface SpellsResponse {
 	SPELL: {[spellID: string]: Spell}
 	EVOLVED: {[spellID: string]: Spell}
-	AURA: Array<Array<Aura>>
+	AURA: Array<[Aura, Aura]>
 }
 
 (async () => {
@@ -189,7 +189,7 @@ interface SpellsResponse {
 		}
 	});
 
-	function queryMatchAura(query: string, auraPair) {
+	function queryMatchAura(query: string, auraPair: [Aura, Aura]) {
 		for (const data of auraPair) {
 			const name = translator.translate(data['titleText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
@@ -198,7 +198,7 @@ interface SpellsResponse {
 		return false;
 	}
 
-	function renderAura(data, evolved: boolean) {
+	function renderAura(data: Aura, evolved: boolean) {
 		const section = document.createElement('section');
 		if (evolved)
 			section.classList.add('evolved');

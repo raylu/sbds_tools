@@ -70,7 +70,7 @@ interface Buff {
 		return section;
 	}
 
-	function queryMatchBuff(query, buffPair) {
+	function queryMatchBuff(query: string, buffPair: Buff[]) {
 		for (const data of buffPair) {
 			if (!data['shrineText'])
 				continue;
