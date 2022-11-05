@@ -10,3 +10,10 @@
 1. `npm install -g typescript`
 1. `npx tsc`
 1. `./sbds_tools.py`
+
+## development
+
+1. `npm install @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint typescript`
+1. `npx tsc --watch`
+
+* `npx eslint ts`

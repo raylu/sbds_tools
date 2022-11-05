@@ -191,7 +191,7 @@ interface SpellsResponse {
 
 	function queryMatchAura(query: string, auraPair) {
 		for (const data of auraPair) {
-			let name = translator.translate(data['titleText']);
+			const name = translator.translate(data['titleText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
 		}

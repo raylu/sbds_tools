@@ -9,8 +9,8 @@ class Translate {
 	lang = 'en';
 	translations: object;
 	langs: Element;
-	clickCB: Function;
-	constructor(languages: Array<string>, translations: object, langs: Element, clickCB: Function) {
+	clickCB: () => void;
+	constructor(languages: Array<string>, translations: object, langs: Element, clickCB: () => void) {
 		this.translations = translations;
 		this.clickCB = clickCB;
 

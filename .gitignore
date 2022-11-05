@@ -1,6 +1,7 @@
 __pycache__/
 /extracted/
 /gdre_tools/
+/node_modules/
 /static/*.js
 /static/*.mjs
 /static/data/

@@ -74,7 +74,7 @@ interface Buff {
 		for (const data of buffPair) {
 			if (!data['shrineText'])
 				continue;
-			let name = translator.translate(data['shrineText']);
+			const name = translator.translate(data['shrineText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
 		}
