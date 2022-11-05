@@ -36,16 +36,16 @@ def main():
 def prepare_translations() -> tuple[set, dict[str, dict[str, str]]]:
 	translations = {}
 	langs = None
-	with open('extracted/SBDS Translations - General Terms.csv', 'r', encoding='utf-8') as f:
+	with open('extracted/.assets/translations.csv', 'r', encoding='utf-8') as f:
 		reader = csv.DictReader(f)
 		row = next(reader)
-		langs = frozenset(lang for lang, s in row.items() if s and lang != 'keys')
+		langs = frozenset(lang for lang, s in row.items() if s and lang != 'key')
 		print('languages:', ', '.join(langs))
-		translations[row['keys']] = {lang: s for lang, s in row.items() if lang in langs}
+		translations[row['yi_US']] = {lang: s for lang, s in row.items() if lang in langs}
 		for row in reader:
-			if len(row['keys']) == 0:
+			if len(row['yi_US']) == 0:
 				continue
-			translations[row['keys']] = {lang: s for lang, s in row.items() if lang in langs}
+			translations[row['yi_US']] = {lang: s for lang, s in row.items() if lang in langs}
 	return langs, translations
 
 def prepare_spells() -> dict:
