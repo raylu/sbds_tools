@@ -210,7 +210,9 @@ def level_bonuses(stmt: lark.tree.Tree):
 	assert assnmnt_expr.data == 'assnmnt_expr', stmt.pretty()
 
 	op = assnmnt_expr.children[1].value
-	assert op in ('+=', '-=', '*=')
+	if op == '=':
+		return
+	assert op in ('+=', '-=', '*='), 'unhandled op %r' % op
 	num = float(assnmnt_expr.children[2].value)
 	if isinstance(assnmnt_expr.children[0], lark.lexer.Token):
 		yield assnmnt_expr.children[0].value, op, num
