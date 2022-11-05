@@ -1,6 +1,6 @@
 'use strict';
 
-import {fetchJSON, Translate} from './common.mjs'
+import {fetchJSON, Translate} from './common.mjs';
 
 (async () => {
 	const spellsPromise = fetchJSON('/static/data/spells.json');
@@ -9,7 +9,7 @@ import {fetchJSON, Translate} from './common.mjs'
 	const {languages, translations} = await translationPromise;
 
 	const translator = new Translate(languages, translations,
-			document.querySelector('#langs'), () => render(search.value));
+		document.querySelector('#langs'), () => render(search.value));
 
 	const search = document.querySelector('input#search');
 	let searchTimeout = null;
@@ -146,7 +146,7 @@ import {fetchJSON, Translate} from './common.mjs'
 				}
 
 				tr = document.createElement('tr');
-				tr.innerHTML = `<td>${level}</td>`
+				tr.innerHTML = `<td>${level}</td>`;
 				for (const varName of varNames)
 					tr.innerHTML += `<td>${numFormat.format(vars[varName])}</td>`;
 				levelTable.appendChild(tr);
@@ -184,7 +184,7 @@ import {fetchJSON, Translate} from './common.mjs'
 				<div class="stats">
 					<div>${description}</div>
 				</div>
-			</div>`
+			</div>`;
 		return section;
 	}
 

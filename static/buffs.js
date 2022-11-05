@@ -1,6 +1,6 @@
 'use strict';
 
-import {fetchJSON, Translate} from './common.mjs'
+import {fetchJSON, Translate} from './common.mjs';
 
 (async () => {
 	const buffsPromise = fetchJSON('/static/data/buffs.json');
@@ -9,7 +9,7 @@ import {fetchJSON, Translate} from './common.mjs'
 	const {languages, translations} = await translationPromise;
 
 	const translator = new Translate(languages, translations,
-			document.querySelector('#langs'), () => render(search.value));
+		document.querySelector('#langs'), () => render(search.value));
 
 	const search = document.querySelector('input#search');
 	let searchTimeout = null;
@@ -56,7 +56,7 @@ import {fetchJSON, Translate} from './common.mjs'
 			if (split.length < 2 || (split[0] != 'buffZone' && split[0] != 'enemyBuffZone'))
 				continue;
 			if (value instanceof Number)
-				value = numFormat.format(value)
+				value = numFormat.format(value);
 			buffRight.innerHTML += `<div>${split[1]}: ${value}</div>`;
 		}
 		section.appendChild(buffRight);
