@@ -7,7 +7,10 @@ async function fetchJSON(path) {
 
 class Translate {
 	lang = 'en';
-	constructor(languages, translations, langs, clickCB) {
+	translations: object;
+	langs: Element;
+	clickCB: Function;
+	constructor(languages: Array<string>, translations: object, langs: Element, clickCB: Function) {
 		this.translations = translations;
 		this.clickCB = clickCB;
 
@@ -20,19 +23,21 @@ class Translate {
 		}
 
 		langs.addEventListener('click', this.onClick.bind(this));
+		this.langs = langs;
 	}
 
-	onClick(event) {
-		const newLang = event.target.dataset['lang'];
+	onClick(event: Event) {
+		const target = event.target as HTMLDivElement;
+		const newLang = target.dataset['lang'];
 		if (newLang) {
-			langs.querySelectorAll('div').forEach((div) => div.classList.remove('selected'));
-			event.target.classList.add('selected');
+			this.langs.querySelectorAll('div').forEach((div) => div.classList.remove('selected'));
+			target.classList.add('selected');
 			this.lang = newLang;
 			this.clickCB();
 		}
 	}
 
-	translate(s) {
+	translate(s: string) {
 		const tr = this.translations[s];
 		if (tr)
 			return tr[this.lang];
@@ -40,7 +45,7 @@ class Translate {
 			return s;
 	}
 
-	translateAll(s) {
+	translateAll(s: string) {
 		return s.replaceAll(/[A-Z_]+/g, this.translate.bind(this));
 	}
 }

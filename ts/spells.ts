@@ -2,26 +2,54 @@
 
 import {fetchJSON, Translate} from './common.mjs';
 
+interface Spell {
+	spellName: string;
+	spellLevel: number | null;
+	levelUpDescriptions: Array<string>;
+	evolveList: Array<string>;
+	spellTags: Array<string> | null;
+	learnDescription: string | null,
+	baseStats: {
+		baseDamage: number;
+		baseCooldown: number;
+		projectileAmount: number;
+		multiProjectileDelay: number;
+		[key: string]: number;
+	}
+	levelData: {
+		[level: string]: Array<[string, string, number]>;
+	}
+}
+interface Aura {
+	titleText: string
+	description: string
+}
+interface SpellsResponse {
+	SPELL: {[spellID: string]: Spell}
+	EVOLVED: {[spellID: string]: Spell}
+	AURA: Array<Array<Aura>>
+}
+
 (async () => {
 	const spellsPromise = fetchJSON('/static/data/spells.json');
 	const translationPromise = fetchJSON('/static/data/translations.json');
-	const spells = await spellsPromise;
+	const spells: SpellsResponse = await spellsPromise;
 	const {languages, translations} = await translationPromise;
 
 	const translator = new Translate(languages, translations,
 		document.querySelector('#langs'), () => render(search.value));
 
-	const search = document.querySelector('input#search');
+	const search = document.querySelector('input#search') as HTMLInputElement;
 	let searchTimeout = null;
 	search.addEventListener('input', (event) => {
-		const query = event.target.value;
+		const query = search.value;
 		if (searchTimeout !== null)
 			clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => render(query), 200);
 	});
 
 	const spellsDiv = document.querySelector('.spells');
-	function render(query) {
+	function render(query: string | null) {
 		spellsDiv.innerHTML = '';
 		if (query !== null)
 			query = query.toLowerCase();
@@ -46,7 +74,7 @@ import {fetchJSON, Translate} from './common.mjs';
 		}
 	}
 
-	function queryMatchSpell(query, data) {
+	function queryMatchSpell(query: string, data: Spell) {
 		if (data['spellName'] !== null) {
 			const name = translator.translate(data['spellName']);
 			if (name.toLowerCase().indexOf(query) !== -1)
@@ -64,7 +92,7 @@ import {fetchJSON, Translate} from './common.mjs';
 	}
 
 	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
-	function renderSpell(spellID, data) {
+	function renderSpell(spellID: string, data: Spell) {
 		const section = document.createElement('section');
 
 		const spellBase = document.createElement('div');
@@ -98,7 +126,7 @@ import {fetchJSON, Translate} from './common.mjs';
 		return section;
 	}
 
-	function renderLevels(section, data) {
+	function renderLevels(section: HTMLElement, data: Spell) {
 		section.innerHTML += '<button class="level_toggle">levels</button>';
 		const levels = document.createElement('div');
 		levels.classList.add('levels');
@@ -117,7 +145,7 @@ import {fetchJSON, Translate} from './common.mjs';
 		if (data['levelData'] !== null) {
 			const levelTable = document.createElement('table');
 			const {levelData, baseStats} = data;
-			const varNames = new Set();
+			const varNames: Set<string> = new Set();
 			Object.values(levelData).forEach((stmts) => {
 				stmts.forEach((stmt) => varNames.add(stmt[0]));
 			});
@@ -133,7 +161,7 @@ import {fetchJSON, Translate} from './common.mjs';
 			}
 			levelTable.appendChild(tr);
 
-			const maxLevel = Math.max(...Object.keys(levelData));
+			const maxLevel = Math.max(...Object.keys(levelData).map(Number));
 			for (let level = minLevel; level <= maxLevel; level++) {
 				const bonus = levelData[level] ?? [];
 				for (const [varName, op, num] of bonus) {
@@ -155,13 +183,13 @@ import {fetchJSON, Translate} from './common.mjs';
 		}
 	}
 	spellsDiv.addEventListener('click', (event) => {
-		if (event.target.tagName === 'BUTTON') {
-			const levels = event.target.parentElement.querySelector('.levels');
+		if ((event.target as HTMLElement).tagName === 'BUTTON') {
+			const levels = (event.target as HTMLButtonElement).parentElement.querySelector('.levels');
 			levels.classList.toggle('visible');
 		}
 	});
 
-	function queryMatchAura(query, auraPair) {
+	function queryMatchAura(query: string, auraPair) {
 		for (const data of auraPair) {
 			let name = translator.translate(data['titleText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
@@ -170,7 +198,7 @@ import {fetchJSON, Translate} from './common.mjs';
 		return false;
 	}
 
-	function renderAura(data, evolved) {
+	function renderAura(data, evolved: boolean) {
 		const section = document.createElement('section');
 		if (evolved)
 			section.classList.add('evolved');

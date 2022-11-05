@@ -2,19 +2,25 @@
 
 import {fetchJSON, Translate} from './common.mjs';
 
+interface Buff {
+	shrineText: string;
+	notificationText: string;
+	[key: string]: string | number;
+}
+
 (async () => {
 	const buffsPromise = fetchJSON('/static/data/buffs.json');
 	const translationPromise = fetchJSON('/static/data/translations.json');
-	const buffs = await buffsPromise;
+	const buffs: Array<Array<Buff>> = await buffsPromise;
 	const {languages, translations} = await translationPromise;
 
 	const translator = new Translate(languages, translations,
 		document.querySelector('#langs'), () => render(search.value));
 
-	const search = document.querySelector('input#search');
+	const search = document.querySelector('input#search') as HTMLInputElement;
 	let searchTimeout = null;
 	search.addEventListener('input', (event) => {
-		const query = event.target.value;
+		const query = search.value;
 		if (searchTimeout !== null)
 			clearTimeout(searchTimeout);
 		searchTimeout = setTimeout(() => render(query), 200);
@@ -22,7 +28,7 @@ import {fetchJSON, Translate} from './common.mjs';
 
 	const range = document.createRange();
 	const buffsDiv = document.querySelector('.buffs');
-	function render(query) {
+	function render(query: string | null) {
 		buffsDiv.innerHTML = '';
 		if (query !== null)
 			query = query.toLowerCase();
@@ -37,7 +43,7 @@ import {fetchJSON, Translate} from './common.mjs';
 	}
 
 	const numFormat = new Intl.NumberFormat(undefined, {'maximumFractionDigits': 2});
-	function renderBuff(playerBuffId, data, isEnemy) {
+	function renderBuff(playerBuffId: string, data: Buff, isEnemy: boolean) {
 		const section = document.createElement('section');
 		if (isEnemy)
 			section.classList.add('enemy');
@@ -46,7 +52,8 @@ import {fetchJSON, Translate} from './common.mjs';
 				<h3>${name}</h3>
 				<img loading="lazy" src="/static/data/buffs/${playerBuffId}.png" class="buff_icon">
 			</div>`;
-		const buffRight = range.createContextualFragment('<div class="buff_right"></div>').firstChild;
+		const buffRight = range.createContextualFragment(
+			'<div class="buff_right"></div>').firstChild as HTMLDivElement;
 		if (data['notificationText']) {
 			const description = translator.translateAll(data['notificationText']);
 			buffRight.innerHTML += `<div class="buff_desc">${description}</div>`;
@@ -55,7 +62,7 @@ import {fetchJSON, Translate} from './common.mjs';
 			const split = key.split('.');
 			if (split.length < 2 || (split[0] != 'buffZone' && split[0] != 'enemyBuffZone'))
 				continue;
-			if (value instanceof Number)
+			if (typeof(value) == 'number')
 				value = numFormat.format(value);
 			buffRight.innerHTML += `<div>${split[1]}: ${value}</div>`;
 		}

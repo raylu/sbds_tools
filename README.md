@@ -7,4 +7,6 @@
    as CSVs to `extracted/`
 1. `pip3 install -r requirements.txt -r requirements_extract.txt`
 1. `./extract.py`
+1. `npm install -g typescript`
+1. `npx tsc`
 1. `./sbds_tools.py`

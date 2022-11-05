@@ -1,4 +1,7 @@
 __pycache__/
 /extracted/
 /gdre_tools/
+/static/*.js
+/static/*.mjs
 /static/data/
+/ts/.tsbuildinfo
