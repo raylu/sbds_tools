@@ -291,7 +291,8 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 	elif right_tree.data == 'mdr_expr': # TODO
 		modifier, times, effectiveness = right_tree.children
 		assert times == '*'
-		assert effectiveness in ('playerbuff', 'enemybuff')
+		assert effectiveness in ('playerbuff', 'enemybuff') or (
+				effectiveness.data == 'standalone_call' and effectiveness.children[2] == 'playerbuff')
 		if isinstance(modifier, lark.lexer.Token):
 			assert modifier.type == 'NUMBER'
 			right = float(modifier.value)
