@@ -6,13 +6,16 @@ async function fetchJSON(path) {
 }
 
 class Translate {
-	lang = 'en';
+	lang: string;
 	translations: object;
 	langs: Element;
 	clickCB: () => void;
 	constructor(languages: Array<string>, translations: object, langs: Element, clickCB: () => void) {
 		this.translations = translations;
 		this.clickCB = clickCB;
+
+		const url = new URL(window.location as unknown as string);
+		this.lang = url.searchParams.get('lang') ?? 'en';
 
 		const langNames = {
 			'en': 'English',
@@ -43,6 +46,11 @@ class Translate {
 			this.langs.querySelectorAll('div').forEach((div) => div.classList.remove('selected'));
 			target.classList.add('selected');
 			this.lang = newLang;
+
+			const url = new URL(window.location as unknown as string);
+			url.searchParams.set('lang', newLang);
+			history.pushState({}, '', url);
+
 			this.clickCB();
 		}
 	}
