@@ -11,10 +11,19 @@ function setupSearch(input: HTMLInputElement, render: (q: string | null) => void
 		if (searchTimeout !== null)
 			clearTimeout(searchTimeout);
 		const query = input.value;
-		searchTimeout = setTimeout(() => render(query), 200);
+		searchTimeout = setTimeout(() => {
+			render(query);
+			const url = new URL(window.location as unknown as string);
+			if (query)
+				url.searchParams.set('q', query);
+			else
+				url.searchParams.delete('q');
+			history.pushState({}, '', url);
+		}, 200);
 	});
 
-	render(null);
+	const url = new URL(window.location as unknown as string);
+	render(url.searchParams.get('q'));
 }
 
 class Translate {
