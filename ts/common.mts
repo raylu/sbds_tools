@@ -1,8 +1,20 @@
 'use strict';
 
-async function fetchJSON(path) {
+async function fetchJSON(path: string) {
 	const res = await fetch(path);
 	return await res.json();
+}
+
+function setupSearch(input: HTMLInputElement, render: (q: string | null) => void) {
+	let searchTimeout = null;
+	input.addEventListener('input', (event) => {
+		if (searchTimeout !== null)
+			clearTimeout(searchTimeout);
+		const query = input.value;
+		searchTimeout = setTimeout(() => render(query), 200);
+	});
+
+	render(null);
 }
 
 class Translate {
@@ -68,4 +80,4 @@ class Translate {
 	}
 }
 
-export { fetchJSON, Translate };
+export { fetchJSON, setupSearch, Translate };

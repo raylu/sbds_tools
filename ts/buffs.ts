@@ -1,6 +1,6 @@
 'use strict';
 
-import {fetchJSON, Translate} from './common.mjs';
+import {fetchJSON, setupSearch, Translate} from './common.mjs';
 
 interface Buff {
 	shrineText: string;
@@ -16,15 +16,6 @@ interface Buff {
 
 	const translator = new Translate(languages, translations,
 		document.querySelector('#langs'), () => render(search.value));
-
-	const search = document.querySelector('input#search') as HTMLInputElement;
-	let searchTimeout = null;
-	search.addEventListener('input', (event) => {
-		const query = search.value;
-		if (searchTimeout !== null)
-			clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(() => render(query), 200);
-	});
 
 	const range = document.createRange();
 	const buffsDiv = document.querySelector('.buffs');
@@ -81,5 +72,6 @@ interface Buff {
 		return false;
 	}
 
-	render(null);
+	const search = document.querySelector('input#search') as HTMLInputElement;
+	setupSearch(search, render);
 })();

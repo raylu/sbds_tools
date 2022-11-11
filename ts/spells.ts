@@ -1,6 +1,6 @@
 'use strict';
 
-import {fetchJSON, Translate} from './common.mjs';
+import {fetchJSON, setupSearch, Translate} from './common.mjs';
 
 interface Spell {
 	spellName: string;
@@ -38,15 +38,6 @@ interface SpellsResponse {
 
 	const translator = new Translate(languages, translations,
 		document.querySelector('#langs'), () => render(search.value));
-
-	const search = document.querySelector('input#search') as HTMLInputElement;
-	let searchTimeout = null;
-	search.addEventListener('input', (event) => {
-		const query = search.value;
-		if (searchTimeout !== null)
-			clearTimeout(searchTimeout);
-		searchTimeout = setTimeout(() => render(query), 200);
-	});
 
 	const spellsDiv = document.querySelector('.spells');
 	function render(query: string | null) {
@@ -216,5 +207,6 @@ interface SpellsResponse {
 		return section;
 	}
 
-	render(null);
+	const search = document.querySelector('input#search') as HTMLInputElement;
+	setupSearch(search, render);
 })();
