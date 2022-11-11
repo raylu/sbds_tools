@@ -23,7 +23,10 @@ function setupSearch(input: HTMLInputElement, render: (q: string | null) => void
 	});
 
 	const url = new URL(window.location as unknown as string);
-	render(url.searchParams.get('q'));
+	const q = url.searchParams.get('q');
+	render(q);
+	if (q)
+		input.value = q;
 }
 
 class Translate {
