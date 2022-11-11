@@ -64,8 +64,6 @@ def prepare_spells() -> dict:
 				spell_paths[prefix].append(path)
 			else:
 				assert prefix == 'AURA'
-				if name == 'DEATHBOUND':
-					continue
 				paths = re.match(r'\[(.+), (.+), "\w+"\]', paths).groups()
 				paths = [path_re.match(path).group(1) for path in paths]
 				spell_paths[prefix].append(paths)
