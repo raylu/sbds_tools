@@ -89,13 +89,7 @@ def prepare_spells() -> dict:
 	]
 	unparseable_level_data = [
 		'SPELL_SHRINE_COLDFRONT',
-		'SPELL_SPIRIT_SHIELD',
-		'SPELL_STORM_THRONE',
-		'SPELL_SHIELD_STORM',
-		'SPELL_TORNADO',
-		'SPELL_DARK_THRONE',
 		'SPELL_MELTDOWN',
-		'EVOLVED_GUN_GUARDIANS',
 	]
 	for prefix in ('SPELL', 'EVOLVED'):
 		for path in spell_paths[prefix]:
