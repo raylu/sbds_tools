@@ -199,7 +199,7 @@ def level_bonuses(stmt: lark.tree.Tree):
 		return
 
 	# base case
-	if stmt.data == 'pass_stmt':
+	if stmt.data in ['pass_stmt', 'func_var_stmt']:
 		return
 	assert stmt.data == 'expr_stmt', stmt.pretty()
 	assnmnt_expr = stmt.children[0].children[0]
