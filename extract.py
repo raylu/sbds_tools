@@ -12,6 +12,7 @@ import gdtoolkit.parser # .gd/script parser
 import godot_parser # .tscn/scene parser
 import lark.lexer
 import lark.tree
+import PIL.Image
 
 def main():
 	shutil.rmtree('static/data', ignore_errors=True)
@@ -90,6 +91,7 @@ def prepare_spell(prefix: str, path: str) -> tuple[str, dict]:
 
 	node = scene.find_node(parent=None)
 	spell_id = node['spellID']
+	print(spell_id)
 	fields = [
 		'spellName',
 		'spellLevel',
@@ -114,13 +116,7 @@ def prepare_spell(prefix: str, path: str) -> tuple[str, dict]:
 
 	icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
 	resource = scene.find_ext_resource(id=icon.id)
-	if resource.type == 'PackedScene':
-		icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
-		resource = icon_scene.find_ext_resource(type='Texture')
-	assert resource.path.startswith('res://')
-	img_path = resource.path[len('res://'):]
-	print(spell_id, '→', img_path)
-	os.link('extracted/' + img_path, f'static/data/spells/{spell_id}.png')
+	prepare_icon(resource, f'static/data/spells/{spell_id}.png')
 
 	script = node['script']
 	resource = scene.find_ext_resource(id=script.id)
@@ -201,20 +197,46 @@ def prepare_aura(path: str) -> dict:
 	]
 	aura = {key: node.get(key) for key in fields}
 	aura_id = node['titleText']
+	print(aura_id)
 
-	icon = node.get('sprite')
-	if icon is not None:
-		resource = scene.find_ext_resource(id=icon.id)
-	else:
-		resource = scene.find_ext_resource(id=node['iconOnlySprite'].id)
-		icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
-		resource = icon_scene.find_ext_resource(type='Texture')
-	assert resource.path.startswith('res://')
-	img_path = resource.path[len('res://'):]
-	print(aura_id, '→', img_path)
-	os.link('extracted/' + img_path, f'static/data/spells/{aura_id}.png')
+	icon = node.get('sprite', node.get('iconOnlySprite'))
+	resource = scene.find_ext_resource(id=icon.id)
+	prepare_icon(resource, f'static/data/spells/{aura_id}.png')
 
 	return aura
+
+def prepare_icon(resource: godot_parser.GDExtResourceSection, output_path: str):
+	if resource.type == 'Texture':
+		assert resource.path.startswith('res://')
+		img_path = resource.path[len('res://'):]
+		os.link('extracted/' + img_path, output_path)
+	else:
+		assert resource.type == 'PackedScene'
+		scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+		root = scene.find_node(parent=None)
+		[child,] = [node for node in scene.get_nodes() if node.parent is not None]
+
+		texture_id = root.get('texture')
+		if texture_id is None:
+			bg_scene_resource = scene.find_ext_resource(id=root.instance)
+			assert bg_scene_resource.path == 'res://UI/Icons/DiamondIcon.tscn'
+			bg_scene = godot_parser.load('extracted/' + bg_scene_resource.path[len('res://'):])
+			bg_resource = bg_scene.find_ext_resource(type='Texture')
+		else:
+			bg_resource = scene.find_ext_resource(id=root['texture'].id, type='Texture')
+		assert bg_resource.path.startswith('res://')
+		bg_path = 'extracted/' + bg_resource.path[len('res://'):]
+
+		scale: godot_parser.Vector2 = child.get('scale', godot_parser.Vector2(1.0, 1.0))
+		overlay_resource = scene.find_ext_resource(id=child['texture'].id, type='Texture')
+		assert overlay_resource.path.startswith('res://')
+		overlay_path = 'extracted/' + overlay_resource.path[len('res://'):]
+
+		with PIL.Image.open(bg_path) as background, PIL.Image.open(overlay_path) as overlay:
+			size = (int(overlay.width * scale.x), int(overlay.height * scale.y))
+			resized = overlay.resize(size)
+			background.paste(resized, (96 - size[0] // 2, 96 - size[1] // 2), mask=resized)
+			background.save(output_path)
 
 def prepare_buffs():
 	with open('extracted/CosmicShrine.gd', 'r', encoding='ascii') as f:

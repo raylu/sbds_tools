@@ -1,2 +1,3 @@
 gdtoolkit<4
 godot_parser@git+https://github.com/raylu/godot_parser
+Pillow
