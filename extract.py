@@ -73,6 +73,23 @@ def prepare_spells() -> dict:
 		'EVOLVED': {},
 		'AURA': [],
 	}
+	for prefix in ('SPELL', 'EVOLVED'):
+		for path in spell_paths[prefix]:
+			spell_id, spell = prepare_spell(prefix, path)
+			spells[prefix][spell_id] = spell
+	
+	for paths in spell_paths['AURA']:
+		# always 2 paths; second is evolution
+		aura_pair = [prepare_aura(path) for path in paths]
+		spells['AURA'].append(aura_pair)
+
+	return spells
+
+def prepare_spell(prefix: str, path: str) -> tuple[str, dict]:
+	scene = godot_parser.load('extracted/' + path)
+
+	node = scene.find_node(parent=None)
+	spell_id = node['spellID']
 	fields = [
 		'spellName',
 		'spellLevel',
@@ -81,80 +98,40 @@ def prepare_spells() -> dict:
 		'spellTags',
 		'learnDescription',
 	]
+	spell = {key: node.get(key) for key in fields}
+	assert prefix == 'SPELL' or spell['evolveList'] is None
+
 	base_stat_fields = [
 		'baseDamage',
 		'baseCooldown',
 		'projectileAmount',
 		'multiProjectileDelay',
 	]
-	unparseable_level_data = [
-		'SPELL_SHRINE_COLDFRONT',
-		'SPELL_MELTDOWN',
-	]
-	for prefix in ('SPELL', 'EVOLVED'):
-		for path in spell_paths[prefix]:
-			scene = godot_parser.load('extracted/' + path)
+	base_stats = {key: node.get(key) for key in base_stat_fields}
+	if base_stats['baseCooldown'] is None:
+		base_stats['baseCooldown'] = 1.0
+	spell['baseStats'] = base_stats
 
-			node = scene.find_node(parent=None)
-			spell_id = node['spellID']
-			spell = {key: node.get(key) for key in fields}
-			assert prefix == 'SPELL' or spell['evolveList'] is None
+	icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
+	resource = scene.find_ext_resource(id=icon.id)
+	if resource.type == 'PackedScene':
+		icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+		resource = icon_scene.find_ext_resource(type='Texture')
+	assert resource.path.startswith('res://')
+	img_path = resource.path[len('res://'):]
+	print(spell_id, '→', img_path)
+	os.link('extracted/' + img_path, f'static/data/spells/{spell_id}.png')
 
-			base_stats = {key: node.get(key) for key in base_stat_fields}
-			if base_stats['baseCooldown'] is None:
-				base_stats['baseCooldown'] = 1.0
-			spell['baseStats'] = base_stats
+	script = node['script']
+	resource = scene.find_ext_resource(id=script.id)
+	assert resource.path.startswith('res://')
+	level_data = None
+	if spell_id not in ['SPELL_SHRINE_COLDFRONT', 'SPELL_MELTDOWN']:
+		level_data, extra_base_stats = parse_level_data('extracted/' + resource.path[len('res://'):])
+		base_stats.update(extra_base_stats)
+	spell['levelData'] = level_data
 
-			icon = node.get('newLevelUpIcon', node.get('levelUpIcon'))
-			resource = scene.find_ext_resource(id=icon.id)
-			if resource.type == 'PackedScene':
-				icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
-				resource = icon_scene.find_ext_resource(type='Texture')
-			assert resource.path.startswith('res://')
-			img_path = resource.path[len('res://'):]
-			print(spell_id, '→', img_path)
-			os.link('extracted/' + img_path, f'static/data/spells/{spell_id}.png')
-
-			script = node['script']
-			resource = scene.find_ext_resource(id=script.id)
-			assert resource.path.startswith('res://')
-			level_data = None
-			if spell_id not in unparseable_level_data:
-				level_data, extra_base_stats = parse_level_data('extracted/' + resource.path[len('res://'):])
-				base_stats.update(extra_base_stats)
-			spell['levelData'] = level_data
-
-			spells[prefix][spell_id] = spell
-	
-	fields = [
-		'titleText',
-		'description',
-	]
-	for paths in spell_paths['AURA']:
-		# always 2 paths; second is evolution
-		aura_pair = []
-		for path in paths:
-			scene = godot_parser.load('extracted/' + path)
-			node = scene.find_node(parent=None)
-			aura = {key: node.get(key) for key in fields}
-			aura_id = node['titleText']
-
-			icon = node.get('sprite')
-			if icon is not None:
-				resource = scene.find_ext_resource(id=icon.id)
-			else:
-				resource = scene.find_ext_resource(id=node['iconOnlySprite'].id)
-				icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
-				resource = icon_scene.find_ext_resource(type='Texture')
-			assert resource.path.startswith('res://')
-			img_path = resource.path[len('res://'):]
-			print(aura_id, '→', img_path)
-			os.link('extracted/' + img_path, f'static/data/spells/{aura_id}.png')
-
-			aura_pair.append(aura)
-		spells['AURA'].append(aura_pair)
-
-	return spells
+	return spell_id, spell
 
 def parse_level_data(path: str) -> tuple[dict[int, list], dict[str, float]]:
 	with open(path, 'r', encoding='ascii') as f:
@@ -214,6 +191,30 @@ def level_bonuses(stmt: lark.tree.Tree):
 		yield getattr_expr.children[2].value, op, num
 	else:
 		raise AssertionError
+
+def prepare_aura(path: str) -> dict:
+	scene = godot_parser.load('extracted/' + path)
+	node = scene.find_node(parent=None)
+	fields = [
+		'titleText',
+		'description',
+	]
+	aura = {key: node.get(key) for key in fields}
+	aura_id = node['titleText']
+
+	icon = node.get('sprite')
+	if icon is not None:
+		resource = scene.find_ext_resource(id=icon.id)
+	else:
+		resource = scene.find_ext_resource(id=node['iconOnlySprite'].id)
+		icon_scene = godot_parser.load('extracted/' + resource.path[len('res://'):])
+		resource = icon_scene.find_ext_resource(type='Texture')
+	assert resource.path.startswith('res://')
+	img_path = resource.path[len('res://'):]
+	print(aura_id, '→', img_path)
+	os.link('extracted/' + img_path, f'static/data/spells/{aura_id}.png')
+
+	return aura
 
 def prepare_buffs():
 	with open('extracted/CosmicShrine.gd', 'r', encoding='ascii') as f:
