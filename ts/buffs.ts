@@ -51,7 +51,8 @@ interface Buff {
 		}
 		for (let [key, value] of Object.entries(data)) {
 			const split = key.split('.');
-			if (split.length < 2 || (split[0] != 'buffZone' && split[0] != 'enemyBuffZone'))
+			if (split.length < 2 || (split[0] != 'buffZone' &&
+				split[0].toLowerCase().substring(0, 'enemybuffzone'.length) != 'enemybuffzone'))
 				continue;
 			if (typeof(value) == 'number')
 				value = numFormat.format(value);

@@ -65,7 +65,7 @@ def prepare_spells() -> dict:
 				spell_paths[prefix].append(path)
 			else:
 				assert prefix == 'AURA'
-				paths = re.match(r'\[(.+), (.+), "\w+"\]', paths).groups()
+				paths = re.match(r'\[(.+), (.+), "\w+", "\w+", (.+)\]', paths).groups()
 				paths = [path_re.match(path).group(1) for path in paths]
 				spell_paths[prefix].append(paths)
 
@@ -149,6 +149,8 @@ def parse_level_data(path: str) -> tuple[dict[int, list], dict[str, float]]:
 def iter_base_stats(tree: lark.tree.Tree):
 	for stmt in tree.children:
 		if stmt.data != 'class_var_stmt':
+			continue
+		if len(stmt.children) == 2 and stmt.children[1].data == 'setget':
 			continue
 		(var_assigned,) = stmt.children
 		assert var_assigned.data == 'var_assigned'
@@ -294,7 +296,14 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 	if isinstance(left_tree, lark.tree.Tree) and left_tree.data == 'getattr':
 		obj, dot, attr = left_tree.children
 		assert dot == '.'
-		left = f'{obj}.{attr}'
+		if isinstance(obj, lark.lexer.Token):
+			left = f'{obj}.{attr}'
+		else:
+			print(obj)
+			assert obj.data == 'get_node'
+			[path] = obj.children
+			assert path.data == 'path'
+			left = f'{"/".join(c for c in path.children)}.{attr}'
 	else:
 		assert isinstance(left_tree, lark.lexer.Token)
 		left = str(left_tree)
@@ -325,6 +334,11 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 		# assnmnt_expr: spell = RunInformation.playerInfo.learn_spell("SPELL_SHRINE_LIGHTNING", true)
 		assert left == 'spell'
 		return
+	elif right_tree.data == 'neg_expr':
+		# right_tree: Tree(neg_expr, [Token(MINUS, '-'), Token(NUMBER, '0.35')])
+		minus, right = right_tree.children
+		assert minus == '-'
+		right = str(right)
 	else:
 		right: lark.lexer.Token
 		(right,) = right_tree.children
