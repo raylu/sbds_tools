@@ -1,5 +1,9 @@
 'use strict';
 
+interface Translations {
+	[key: string]: {[lang: string]: string}
+}
+
 async function fetchJSON(path: string) {
 	const res = await fetch(path);
 	return await res.json();
@@ -31,10 +35,10 @@ function setupSearch(input: HTMLInputElement, render: (q: string | null) => void
 
 class Translate {
 	lang: string;
-	translations: object;
+	translations: Translations;
 	langs: Element;
 	clickCB: () => void;
-	constructor(languages: Array<string>, translations: object, langs: Element, clickCB: () => void) {
+	constructor(languages: Array<string>, translations: Translations, langs: Element, clickCB: () => void) {
 		this.translations = translations;
 		this.clickCB = clickCB;
 
@@ -81,8 +85,10 @@ class Translate {
 
 	translate(s: string) {
 		const tr = this.translations[s];
-		if (tr)
-			return tr[this.lang];
+		if (tr) {
+			const translation = tr[this.lang];
+			return translation.replaceAll(/\[b\](\w+)\[\/b\]/g, (_, group1) => `<b>${group1}</b>`);
+		}
 		else // translation not found
 			return s;
 	}
