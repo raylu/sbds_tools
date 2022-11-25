@@ -27,7 +27,7 @@ interface Aura {
 interface SpellsResponse {
 	SPELL: {[spellID: string]: Spell}
 	EVOLVED: {[spellID: string]: Spell}
-	AURA: Array<[Aura, Aura]>
+	AURA: Array<[Aura, Aura, Aura]>
 }
 
 (async () => {
@@ -56,11 +56,12 @@ interface SpellsResponse {
 				}
 			}
 		}
-		for (const auraPair of spells['AURA']) {
-			if (query === null || queryMatchAura(query, auraPair)) {
-				const [normalAura, evolvedAura] = auraPair;
-				spellsDiv.appendChild(renderAura(normalAura, false));
-				spellsDiv.appendChild(renderAura(evolvedAura, true));
+		for (const auraTriplet of spells['AURA']) {
+			if (query === null || queryMatchAura(query, auraTriplet)) {
+				const [normalAura, evolvedAura, mutatedAura] = auraTriplet;
+				spellsDiv.appendChild(renderAura(normalAura));
+				spellsDiv.appendChild(renderAura(evolvedAura, 'evolved'));
+				spellsDiv.appendChild(renderAura(mutatedAura, 'mutated'));
 			}
 		}
 	}
@@ -180,8 +181,8 @@ interface SpellsResponse {
 		}
 	});
 
-	function queryMatchAura(query: string, auraPair: [Aura, Aura]) {
-		for (const data of auraPair) {
+	function queryMatchAura(query: string, auraTriplet: [Aura, Aura, Aura]) {
+		for (const data of auraTriplet) {
 			const name = translator.translate(data['titleText']);
 			if (name.toLowerCase().indexOf(query) !== -1)
 				return true;
@@ -189,10 +190,10 @@ interface SpellsResponse {
 		return false;
 	}
 
-	function renderAura(data: Aura, evolved: boolean) {
+	function renderAura(data: Aura, cssClass?: string) {
 		const section = document.createElement('section');
-		if (evolved)
-			section.classList.add('evolved');
+		if (cssClass)
+			section.classList.add(cssClass);
 		const name = translator.translate(data['titleText']);
 		const description = translator.translateAll(data['description']);
 		section.innerHTML = `<div class="spell_base">

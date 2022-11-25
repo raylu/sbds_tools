@@ -88,7 +88,7 @@ main input#search {
 .spells section, .buffs section {
 	grid-column: 1;
 }
-.spells section.evolved, .buffs section.enemy {
+.spells section.evolved, .spells section.mutated, .buffs section.enemy {
 	margin-left: 20px;
 	grid-column: 2;
 }
