@@ -87,7 +87,7 @@ class Translate {
 		const tr = this.translations[s];
 		if (tr) {
 			const translation = tr[this.lang];
-			return translation.replaceAll(/\[b\](\w+)\[\/b\]/g, (_, group1) => `<b>${group1}</b>`);
+			return translation.replaceAll(/\[b\](.+)\[\/b\]/g, (_, group1) => `<b>${group1}</b>`);
 		}
 		else // translation not found
 			return s;
