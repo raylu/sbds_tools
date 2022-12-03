@@ -299,7 +299,6 @@ def parse_buff_stmt(stmt: lark.tree.Tree) -> typing.Union[None, tuple[str, typin
 		if isinstance(obj, lark.lexer.Token):
 			left = f'{obj}.{attr}'
 		else:
-			print(obj)
 			assert obj.data == 'get_node'
 			[path] = obj.children
 			assert path.data == 'path'
